@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Pinned to the exact `engines` floor rather than 22.x, so the declared
+        # support range and the tested range are the same claim. 26.x is the
+        # development environment.
+        node-version: ['22.12.0', '24.x', '26.x']
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+      - run: npm run lint
+      # All test layers run offline: no corpus is fetched at test time, the
+      # vendored Tauri schemas are committed, and the analyzer never executes
+      # the projects it analyzes.
+      - run: npm test

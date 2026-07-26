@@ -1,0 +1,69 @@
+{
+  "name": "tauri-audit",
+  "version": "0.1.0",
+  "description": "Static security analyzer for Tauri v2/v1 apps — separates severity from confidence, keeps high-confidence false positives at zero.",
+  "type": "module",
+  "main": "dist/core/index.js",
+  "types": "dist/core/index.d.ts",
+  "bin": {
+    "tauri-audit": "dist/cli/index.js"
+  },
+  "files": [
+    "dist",
+    "schemas",
+    "advisories"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gyugyu86/tauri-audit.git"
+  },
+  "homepage": "https://github.com/gyugyu86/tauri-audit#readme",
+  "bugs": {
+    "url": "https://github.com/gyugyu86/tauri-audit/issues"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && chmod +x dist/cli/index.js",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "dev": "tsx src/cli/index.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "tauri",
+    "security",
+    "static-analysis",
+    "sast",
+    "sarif",
+    "cli"
+  ],
+  "author": "INGYU EUM",
+  "license": "MIT",
+  "dependencies": {
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "chalk": "^5.6.2",
+    "commander": "^15.0.0",
+    "fast-glob": "^3.3.3",
+    "json5": "^2.2.3",
+    "jsonc-parser": "^3.3.1",
+    "picomatch": "^4.0.5",
+    "semver": "^7.8.5",
+    "smol-toml": "^1.7.0",
+    "yaml": "^2.9.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "@types/picomatch": "^4.0.3",
+    "@types/sarif": "^2.1.7",
+    "@types/semver": "^7.7.1",
+    "@typescript-eslint/eslint-plugin": "^8.64.0",
+    "@typescript-eslint/parser": "^8.64.0",
+    "eslint": "^10.7.0",
+    "tsx": "^4.23.1",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
+  }
+}

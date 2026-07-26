@@ -1,0 +1,66 @@
+name: 'tauri-audit'
+description: 'Static-analyze a Tauri project for insecure configuration and known-vulnerable dependencies, and report to GitHub code scanning (SARIF).'
+author: 'gyugyu86'
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  path:
+    description: 'Path to the Tauri project to analyze.'
+    required: false
+    default: '.'
+  version:
+    description: 'npm dist-tag or exact version of tauri-audit to run.'
+    required: false
+    default: 'latest'
+  sarif-file:
+    description: 'Where to write the SARIF report.'
+    required: false
+    default: 'tauri-audit.sarif'
+  category:
+    description: >-
+      SARIF category for this run. Since 2025-07-22 GitHub rejects multiple runs
+      sharing a tool+category, so give each invocation its own value when you run
+      tauri-audit more than once in a repository.
+    required: false
+    default: 'tauri-audit'
+  upload:
+    description: 'Upload the SARIF to GitHub code scanning.'
+    required: false
+    default: 'true'
+  fail-on-findings:
+    description: 'Fail the job when gating (high-confidence critical/high) findings exist.'
+    required: false
+    default: 'true'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Scan with tauri-audit
+      id: scan
+      shell: bash
+      run: |
+        set +e
+        npx --yes "tauri-audit@${{ inputs.version }}" "${{ inputs.path }}" --sarif > "${{ inputs.sarif-file }}" 2>/dev/null
+        echo "exit-code=$?" >> "$GITHUB_OUTPUT"
+        # Never fail this step. The SARIF must reach the Security tab even when
+        # findings exist; the CI gate is enforced separately below.
+        exit 0
+
+    - name: Upload SARIF to code scanning
+      if: ${{ inputs.upload == 'true' }}
+      uses: github/codeql-action/upload-sarif@v4
+      with:
+        sarif_file: ${{ inputs.sarif-file }}
+        category: ${{ inputs.category }}
+
+    - name: Enforce findings gate
+      if: ${{ inputs.fail-on-findings == 'true' }}
+      shell: bash
+      run: |
+        if [ "${{ steps.scan.outputs.exit-code }}" != "0" ]; then
+          echo "::error::tauri-audit found high-confidence critical/high issues."
+          exit 1
+        fi
+        echo "tauri-audit: no gating findings."
