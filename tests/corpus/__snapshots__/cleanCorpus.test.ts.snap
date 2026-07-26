@@ -6,6 +6,28 @@ exports[`corpus findings snapshot > clean/ecopaste 1`] = `
 ]
 `;
 
+exports[`corpus findings snapshot > clean/grovr 1`] = `
+[
+  "TA-CONF-001 medium/heuristic src-tauri/tauri.conf.json:31",
+]
+`;
+
+exports[`corpus findings snapshot > clean/hatickets 1`] = `[]`;
+
+exports[`corpus findings snapshot > clean/paperling 1`] = `
+[
+  "TA-CAP-003 medium/heuristic src-tauri/capabilities/default.json:33",
+]
+`;
+
+exports[`corpus findings snapshot > clean/pomotroid 1`] = `[]`;
+
+exports[`corpus findings snapshot > clean/rclone-ui 1`] = `
+[
+  "TA-CONF-001 medium/heuristic src-tauri/tauri.conf.json:33",
+]
+`;
+
 exports[`corpus findings snapshot > clean/surrealist 1`] = `
 [
   "TA-CONF-001 medium/heuristic src-tauri/tauri.conf.json:90",
@@ -20,6 +42,13 @@ exports[`corpus findings snapshot > clean/yaak 1`] = `
 [
   "TA-CONF-001 medium/heuristic crates-tauri/yaak-app-client/tauri.conf.json:14",
   "TA-CONF-001 medium/heuristic crates-tauri/yaak-app-proxy/tauri.conf.json:11",
+]
+`;
+
+exports[`corpus findings snapshot > true-positive/kiwitalk 1`] = `
+[
+  "TA-CONF-001 medium/heuristic backend/bin/app/tauri.conf.json:55",
+  "TA-V1-001 high/high backend/bin/app/tauri.conf.json:14",
 ]
 `;
 

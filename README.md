@@ -140,7 +140,7 @@ is dangerous and how to confirm or fix it, so the report is readable without thi
 | `TA-V1-003` | v1 | `tauri.security.dangerousUseHttpScheme: true` | medium / high | synthetic |
 | `TA-DEP-001` | v2 | shell plugin ≤ 2.2.0 with an unset `open` scope (CVE-2025-31477) | high / heuristic | synthetic |
 | `TA-VITE-001` | any | Vite `envPrefix` covering Tauri signing variables (CVE-2023-46115) | low / heuristic | synthetic |
-| `TA-CAP-003` | v2 | capability filesystem scope reaching past the application | medium / heuristic | synthetic |
+| `TA-CAP-003` | v2 | capability filesystem scope reaching past the application | medium / heuristic | real-world |
 
 **Evidence** records whether the rule has been shown to fire on real third-party code, and
 is carried as rule metadata rather than documentation, so a test can check it. `real-world`
@@ -156,7 +156,7 @@ is the position `TA-CONF-001` is in.
 
 Most rules are `synthetic` because the settings they look for are rare in shipped code —
 which is the point of them being dangerous. That asymmetry is expected rather than a gap to
-close.
+close, and `tests/corpus/README.md` lists exactly which rules still lack real-world material.
 
 ### What this is worth on v2, honestly
 

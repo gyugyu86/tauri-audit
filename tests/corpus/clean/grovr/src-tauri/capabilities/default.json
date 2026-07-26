@@ -1,0 +1,27 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Capability for the main window",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-start-dragging",
+    "core:window:allow-show",
+    "core:window:allow-hide",
+    "core:window:allow-is-visible",
+    "core:window:allow-set-focus",
+    "opener:default",
+    "store:default",
+    "dialog:default",
+    "clipboard-manager:default",
+    "clipboard-manager:allow-read-text",
+    "os:default",
+    "shell:default",
+    "liquid-glass:default",
+    "autostart:default",
+    "global-shortcut:default",
+    "deep-link:default",
+    "updater:default",
+    "process:default"
+  ]
+}

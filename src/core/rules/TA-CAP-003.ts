@@ -138,7 +138,8 @@ export const TA_CAP_003: CapabilityRule = {
   id: 'TA-CAP-003',
   kind: 'capability',
   severity: 'medium',
-  evidence: 'synthetic-only',
+  // Fires on Paperling, which declares fs:scope over `**`.
+  evidence: 'real-world',
   target: 'capability filesystem scope reaching beyond the application',
   whyDangerous:
     'A filesystem permission scoped to the user home, to a personal data directory, or to the ' +

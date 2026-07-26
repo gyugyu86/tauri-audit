@@ -32,6 +32,45 @@ observation about a real trade-off, not a false positive. Those findings are cap
 snapshot so that any *change* to them gets human review, while their mere existence never
 fails the build.
 
+## What the corpus covers
+
+Selected under `docs/CORPUS-SELECTION.md`, which was fixed and committed before any
+application was chosen and before the tool was run against any of them.
+
+| Application | License | Tauri | What it contributes |
+| --- | --- | --- | --- |
+| Splode/pomotroid | MIT | v2 | a v2 app that **sets a CSP** — TA-CONF-001 correctly silent |
+| currycan/HaTickets | Apache-2.0 | **v1** | third-party v1, CSP set, no `allowlist.all` — all v1 rules correctly silent; monorepo layout |
+| j1king/grovr | MIT | v2 | the only app found configuring `plugins.shell` (`open: true`) — CVE-2025-31477's exemption on real code; `pnpm-lock.yaml` |
+| rclone-ui/rclone-ui | Apache-2.0 | v2 | 164 string + 8 object permission entries — the `PermissionEntry` `anyOf` on real data |
+| Razee4315/Paperling | Apache-2.0 | v2 | `fs:scope` over `**` — TA-CAP-003's first real-world case; two capability files |
+| surrealdb/surrealist | MIT | v2 | tightly enumerated permissions |
+| EcoPasteHub/EcoPaste | Apache-2.0 | v2 | multiple capability files, one platform-scoped |
+| mountain-loop/yaak | MIT | v2 | two apps in one repo, no `src-tauri/`; `$APPDATA/**` fs scope |
+| tauri-apps/tauri examples | MIT/Apache-2.0 | v1 | `helloworld` (explicit `allowlist.all: false`) and `isolation` |
+
+Two negative results are worth as much as the positive ones. yaak's `fs:scope` over
+`$APPDATA/**` is a recursive wildcard that a naive breadth rule would flag, and TA-CAP-003
+correctly does not. KiwiTalk's v1-era `envPrefix` lists `TAURI_PLATFORM`, `TAURI_ARCH` and
+similar, and TA-VITE-001 correctly does not — a substring match on `TAURI_` would have.
+
+### Gaps that remain
+
+No real-world material was found for:
+
+- **TA-CONF-002** (`dangerousDisableAssetCspModification`) — no permissively licensed
+  application was found that sets it. Fixtures only.
+- **TA-V1-002** (`dangerousRemoteDomainIpcAccess`) and **TA-V1-003**
+  (`dangerousUseHttpScheme`) — neither appears in either third-party v1 application.
+- **TA-DEP-001 firing.** grovr exercises the exemption, but no corpus application both
+  depends on an affected shell plugin version *and* leaves `open` unset.
+- **`deny` alongside `allow`** in a filesystem scope, and fs variables other than
+  `$APPDATA`.
+
+These are recorded rather than filled because filling them would mean either weakening the
+selection criteria or writing the evidence ourselves, and both would cost more than the gap
+does.
+
 ## Provenance and licensing
 
 Each app directory carries its own `PROVENANCE.md` (source URL, commit SHA, exact files
