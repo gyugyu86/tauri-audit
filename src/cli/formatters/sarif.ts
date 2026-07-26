@@ -5,6 +5,7 @@ import type { ReportMeta } from './reportModel.js';
 import { orderedFindings } from './reportModel.js';
 
 import type { Confidence, Finding, Severity } from '../../core/types.js';
+import { ALL_RULES } from '../../core/rules/index.js';
 
 const SARIF_SCHEMA = 'https://json.schemastore.org/sarif-2.1.0.json';
 const INFORMATION_URI = 'https://github.com/gyugyu86/tauri-audit';
@@ -126,41 +127,39 @@ export function formatSarif(
   const rules: unknown[] = [];
 
   /**
-   * The strongest grading this rule actually produced in this run.
+   * The ceiling each rule declares, not what this run happened to produce.
    *
    * `security-severity` is a rule-level property in SARIF while `level` is
    * per-result, and GitHub bands its displayed severity from the rule-level
-   * number. Grading the descriptor as if every finding were certain therefore
-   * badged a heuristic finding at full strength — TA-DEP-001 is heuristic by
-   * construction, and its alerts were banding `high` while their own `level`
-   * correctly said `warning`. The descriptor now reflects the worst grading the
-   * rule genuinely emitted, so a rule that only ever reports heuristically is
-   * never presented as though it had not.
+   * number. So a rule emitting both confidences needs one number to describe it,
+   * and there are two ways to pick it.
+   *
+   * Taking the strongest grading the run produced was the first attempt, and it
+   * makes rule metadata depend on the project being scanned: the same tool
+   * version would describe TA-V1-002 as 8.0 for one repository and 5.0 for
+   * another. Rule descriptors are documentation about the rule, so they should
+   * not move with the target. The declared `severity` and `maxConfidence` give a
+   * fixed answer, and `rules.test.ts` asserts no finding ever exceeds it.
+   *
+   * Grading every descriptor as if certain — the version before that — was
+   * simply wrong: TA-DEP-001 is heuristic by construction, and its alerts banded
+   * `high` while their own `level` correctly said `warning`.
    */
-  const strongest = new Map<string, { severity: Severity; confidence: Confidence }>();
-  for (const finding of ordered) {
-    const current = strongest.get(finding.ruleId);
-    const score = Number(sarifGrading(finding.severity, finding.confidence).securitySeverity);
-    if (
-      current === undefined ||
-      score > Number(sarifGrading(current.severity, current.confidence).securitySeverity)
-    ) {
-      strongest.set(finding.ruleId, {
-        severity: finding.severity,
-        confidence: finding.confidence,
-      });
-    }
-  }
+  const declared = new Map(
+    ALL_RULES.map((rule) => [rule.id, { severity: rule.severity, confidence: rule.maxConfidence }]),
+  );
 
   for (const finding of ordered) {
     if (ruleIndex.has(finding.ruleId)) continue;
     ruleIndex.set(finding.ruleId, rules.length);
 
-    const worst = strongest.get(finding.ruleId) ?? {
+    // Findings with no registered rule — schema conformance, and synthetic
+    // findings in tests — are described by themselves.
+    const ceiling = declared.get(finding.ruleId) ?? {
       severity: finding.severity,
       confidence: finding.confidence,
     };
-    const grading = sarifGrading(worst.severity, worst.confidence);
+    const grading = sarifGrading(ceiling.severity, ceiling.confidence);
     const references = finding.references ?? [];
 
     rules.push({

@@ -39,6 +39,7 @@ export const TA_V1_001: ConfigRule = {
   kind: 'config',
   appliesTo: 'v1',
   severity: 'high',
+  maxConfidence: 'high',
   // Trips tauri-apps/tauri examples/api, vendored in tests/corpus/true-positive/.
   evidence: 'real-world',
   target: 'tauri.allowlist.all',

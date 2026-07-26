@@ -64,6 +64,7 @@ export const TA_VITE_001: ProjectRule = {
   id: 'TA-VITE-001',
   kind: 'project',
   severity: 'low',
+  maxConfidence: 'heuristic',
   evidence: 'synthetic-only',
   target: 'vite.config envPrefix covering Tauri signing variables',
   whyDangerous:

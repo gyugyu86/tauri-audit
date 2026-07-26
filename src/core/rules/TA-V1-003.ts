@@ -45,6 +45,7 @@ export const TA_V1_003: ConfigRule = {
   kind: 'config',
   appliesTo: 'v1',
   severity: 'medium',
+  maxConfidence: 'high',
   evidence: 'synthetic-only',
   target: 'tauri.security.dangerousUseHttpScheme',
   whyDangerous: WHY_DANGEROUS,

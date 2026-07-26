@@ -40,6 +40,7 @@ export const TA_DEP_001: ProjectRule = {
   id: 'TA-DEP-001',
   kind: 'project',
   severity: 'high',
+  maxConfidence: 'heuristic',
   evidence: 'synthetic-only',
   target: 'tauri-plugin-shell / @tauri-apps/plugin-shell <= 2.2.0 with an unset open scope',
   whyDangerous:

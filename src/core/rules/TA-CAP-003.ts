@@ -138,6 +138,7 @@ export const TA_CAP_003: CapabilityRule = {
   id: 'TA-CAP-003',
   kind: 'capability',
   severity: 'medium',
+  maxConfidence: 'heuristic',
   // Fires on Paperling, which declares fs:scope over `**`.
   evidence: 'real-world',
   target: 'capability filesystem scope reaching beyond the application',

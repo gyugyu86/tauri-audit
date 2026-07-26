@@ -45,6 +45,19 @@ The same framing applies as to `tauri-api-v1` next door: an application appears 
 directory because its configuration exercises a rule, not because anyone is asserting it is
 insecure.
 
+## Upstream notified
+
+The maintainers were told before this repository was made public: an issue on
+KiwiTalk/KiwiTalk describes the `allowlist.all: true` observation and states that these
+configuration files are vendored here under Apache-2.0 with attribution, with a standing
+offer to remove them on request.
+
+Framed as notification with a standing opt-out rather than a request for permission.
+Apache-2.0 already permits this with attribution, so consent is a courtesy rather than a
+legal requirement — and asking would have made a release wait on a reply, then made
+proceeding without one awkward. Telling them, and meaning the offer to remove, is both
+honest and unblocking.
+
 ## What it is worth to the corpus
 
 It is the first **third-party** evidence for TA-V1-001. Until this expansion the only

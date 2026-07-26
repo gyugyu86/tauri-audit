@@ -1,5 +1,5 @@
 import type { AnalyzedCapability, AnalyzedConfig, TauriProject } from '../projectContext.js';
-import type { Finding, Severity } from '../types.js';
+import type { Confidence, Finding, Severity } from '../types.js';
 
 /**
  * Rule authoring contract.
@@ -41,7 +41,22 @@ export type RuleEvidence =
 interface BaseRule {
   /** e.g. 'TA-CONF-002'. */
   id: string;
+  /** The most severe finding this rule can produce. */
   severity: Severity;
+  /**
+   * The strongest confidence this rule can produce, declared rather than observed.
+   *
+   * SARIF puts `security-severity` on the rule, not the result, so a rule that
+   * emits both confidences needs one number to describe it. Taking the strongest
+   * grading a run happened to produce would make that number depend on the
+   * project being scanned — the same tool version would describe TA-V1-002 as
+   * 8.0 for one repository and 5.0 for another. Declaring the ceiling keeps rule
+   * metadata a property of the rule.
+   *
+   * `rules.test.ts` asserts no finding ever exceeds what its rule declares, so
+   * this cannot drift away from the implementation.
+   */
+  maxConfidence: Confidence;
   /** Short description of what the rule looks at, shown as the finding headline. */
   target: string;
   whyDangerous: string;

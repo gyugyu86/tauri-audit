@@ -1,3 +1,4 @@
+import { readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -6,7 +7,7 @@ import { describe, expect, it } from 'vitest';
 import { buildProjectContext } from '../../src/core/projectContext.js';
 import { runRules } from '../../src/core/ruleEngine.js';
 import { ALL_RULES } from '../../src/core/rules/index.js';
-import type { Finding } from '../../src/core/types.js';
+import type { Confidence, Finding, Severity } from '../../src/core/types.js';
 
 const FIXTURES = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'fixtures');
 
@@ -240,5 +241,92 @@ describe('rule metadata contract', () => {
         expect(count, `${id} registered ${String(count)} times`).toBe(1);
       }
     }
+  });
+});
+
+describe('declared ceilings match what the rules actually emit', () => {
+  // SARIF describes a rule by its declared severity and maxConfidence rather
+  // than by whatever a given run produced, so rule metadata stays a property of
+  // the rule instead of the scanned project. That only works if the declaration
+  // is true, and nothing in the type system enforces it — this does.
+  const SEVERITY_RANK: Record<Severity, number> = {
+    info: 0,
+    low: 1,
+    medium: 2,
+    high: 3,
+    critical: 4,
+  };
+  const CONFIDENCE_RANK: Record<Confidence, number> = { heuristic: 0, high: 1 };
+
+  /** Every fixture directory, so no rule's output is left unexamined. */
+  const fixtureDirs = readdirSync(FIXTURES, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .flatMap((group) =>
+      readdirSync(path.join(FIXTURES, group.name), { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => path.join(group.name, entry.name)),
+    );
+
+  const declared = new Map(
+    ALL_RULES.map((rule) => [rule.id, { severity: rule.severity, confidence: rule.maxConfidence }]),
+  );
+
+  it('has fixtures to examine', () => {
+    expect(fixtureDirs.length).toBeGreaterThan(10);
+  });
+
+  it('never emits a finding stronger than its rule declares', () => {
+    const violations: string[] = [];
+
+    for (const fixture of fixtureDirs) {
+      for (const finding of scan(fixture)) {
+        const ceiling = declared.get(finding.ruleId);
+        if (ceiling === undefined) continue;
+
+        if (SEVERITY_RANK[finding.severity] > SEVERITY_RANK[ceiling.severity]) {
+          violations.push(
+            `${fixture}: ${finding.ruleId} emitted ${finding.severity}, declares ${ceiling.severity}`,
+          );
+        }
+        if (CONFIDENCE_RANK[finding.confidence] > CONFIDENCE_RANK[ceiling.confidence]) {
+          violations.push(
+            `${fixture}: ${finding.ruleId} emitted ${finding.confidence}, declares ${ceiling.confidence}`,
+          );
+        }
+      }
+    }
+
+    expect(violations).toEqual([]);
+  });
+
+  it('does not declare a ceiling no fixture reaches', () => {
+    // An overstated ceiling inflates the rule's badge in code scanning for
+    // findings that can never be that strong. Reported rather than asserted:
+    // a rule may legitimately have a path no fixture covers yet.
+    const reached = new Map<string, { severity: Severity; confidence: Confidence }>();
+    for (const fixture of fixtureDirs) {
+      for (const finding of scan(fixture)) {
+        const current = reached.get(finding.ruleId);
+        if (
+          current === undefined ||
+          SEVERITY_RANK[finding.severity] > SEVERITY_RANK[current.severity] ||
+          CONFIDENCE_RANK[finding.confidence] > CONFIDENCE_RANK[current.confidence]
+        ) {
+          reached.set(finding.ruleId, {
+            severity: finding.severity,
+            confidence: finding.confidence,
+          });
+        }
+      }
+    }
+
+    const unreached = [...declared.entries()]
+      .filter(([id, ceiling]) => {
+        const hit = reached.get(id);
+        return hit !== undefined && CONFIDENCE_RANK[hit.confidence] < CONFIDENCE_RANK[ceiling.confidence];
+      })
+      .map(([id]) => id);
+
+    expect(unreached, 'a declared maxConfidence that no fixture demonstrates').toEqual([]);
   });
 });
