@@ -124,6 +124,7 @@ export const TA_V1_002: ConfigRule = {
   kind: 'config',
   appliesTo: 'v1',
   severity: 'high',
+  evidence: 'synthetic-only',
   target: 'tauri.security.dangerousRemoteDomainIpcAccess',
   whyDangerous: WHY_BASE,
   recommendation: RECOMMENDATION,

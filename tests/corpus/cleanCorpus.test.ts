@@ -69,17 +69,42 @@ describe('clean corpus produces no gating findings', () => {
   });
 });
 
+const TRUE_POSITIVE = path.join(CORPUS, 'true-positive');
+
+const truePositiveApps = readdirSync(TRUE_POSITIVE, { withFileTypes: true })
+  .filter((entry) => entry.isDirectory())
+  .map((entry) => entry.name)
+  .sort();
+
 describe('corpus findings snapshot', () => {
   // Heuristic findings on real apps are legitimate output, but a CHANGE in them
   // should be looked at by a person. The snapshot makes rule drift visible
   // without making the drift fail the build for the wrong reason.
-  it.each(cleanApps)('%s', (app) => {
-    const root = path.join(CLEAN, app);
+  //
+  // The true-positive apps are snapshotted alongside the clean ones on purpose.
+  // While every clean app yields an empty list, an all-empty snapshot file would
+  // still pass if the comparison itself were broken — the mechanism would be
+  // silently untested, which is the same failure mode as a swallowed exception
+  // reading as a clean result. At least one non-empty snapshot keeps the
+  // mechanism honest.
+  it.each([
+    ...cleanApps.map((app) => ['clean', app] as const),
+    ...truePositiveApps.map((app) => ['true-positive', app] as const),
+  ])('%s/%s', (group, app) => {
+    const root = path.join(CORPUS, group, app);
     const { findings } = scan(root);
-    const normalized = findings
-      .map((finding) => describeFinding(root, finding))
-      .sort();
+    const normalized = findings.map((finding) => describeFinding(root, finding)).sort();
     expect(normalized).toMatchSnapshot();
+  });
+
+  it('includes at least one non-empty snapshot', () => {
+    // Guards the guard: if every corpus app stopped producing findings, the
+    // snapshots above would all be `[]` and would keep passing while proving
+    // nothing.
+    const nonEmpty = truePositiveApps.filter(
+      (app) => scan(path.join(TRUE_POSITIVE, app)).findings.length > 0,
+    );
+    expect(nonEmpty.length).toBeGreaterThan(0);
   });
 });
 
@@ -88,11 +113,40 @@ describe('true-positive corpus does trip rules', () => {
   // have stopped detecting anything and the clean-corpus result would be
   // meaningless.
   it('tauri-api-v1 produces a gating finding', () => {
-    const root = path.join(CORPUS, 'true-positive', 'tauri-api-v1');
+    const root = path.join(TRUE_POSITIVE, 'tauri-api-v1');
     const { findings } = scan(root);
 
     const gating = findings.filter((finding) => isGatingFinding(finding, 'default'));
     expect(gating.length).toBeGreaterThan(0);
     expect(gating.map((finding) => finding.ruleId)).toContain('TA-V1-001');
+  });
+});
+
+describe('rule evidence metadata matches reality', () => {
+  /** Rule IDs that actually fire somewhere in tests/corpus/true-positive/. */
+  const firedOnRealCode = new Set(
+    truePositiveApps.flatMap((app) =>
+      scan(path.join(TRUE_POSITIVE, app)).findings.map((finding) => finding.ruleId),
+    ),
+  );
+
+  it.each(ALL_RULES.map((rule) => [rule.id, rule.evidence] as const))(
+    '%s declares %s',
+    (id, evidence) => {
+      // A rule may not claim real-world evidence it does not have. The check runs
+      // in the honest direction only: `synthetic-only` is always allowed to be a
+      // conservative understatement, but `real-world` must be earned by an
+      // unmodified third-party config in the corpus.
+      if (evidence === 'real-world') {
+        expect(firedOnRealCode.has(id), `${id} claims real-world evidence but fires on no corpus app`).toBe(true);
+      }
+    },
+  );
+
+  it('reports how many rules rest on fixtures alone', () => {
+    // Not an assertion about the right number — just a place where the ratio is
+    // visible, so it cannot quietly drift toward all-synthetic.
+    const synthetic = ALL_RULES.filter((rule) => rule.evidence === 'synthetic-only');
+    expect(synthetic.length).toBeLessThanOrEqual(ALL_RULES.length);
   });
 });

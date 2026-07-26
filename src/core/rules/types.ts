@@ -9,6 +9,27 @@ import type { Finding, Severity } from '../types.js';
  * readable list that the CLI and every corpus test share.
  */
 
+/**
+ * How strongly this rule has been shown to fire on genuine misconfiguration.
+ *
+ * The clean corpus proves the negative direction for every rule: none of them
+ * fire on six real, correctly written applications. The positive direction —
+ * that a rule fires on real misconfigured code, not just on a fixture we wrote
+ * to make it fire — is a separate claim, and it does not hold equally for all
+ * rules. Settings this dangerous are rare in shipped applications, so some rules
+ * can only be demonstrated synthetically.
+ *
+ * This lives in metadata rather than in prose so it stays attached to the rule
+ * it describes, can be asserted in tests, and can be generated into docs — the
+ * same reason advisory exemption conditions are data rather than restated in
+ * each rule body.
+ */
+export type RuleEvidence =
+  /** Trips at least one unmodified config in `tests/corpus/true-positive/`. */
+  | 'real-world'
+  /** Demonstrated only against fixtures authored for this repository. */
+  | 'synthetic-only';
+
 interface BaseRule {
   /** e.g. 'TA-CONF-002'. */
   id: string;
@@ -17,6 +38,7 @@ interface BaseRule {
   target: string;
   whyDangerous: string;
   recommendation: string;
+  evidence: RuleEvidence;
   /**
    * Advisory and specification URLs. CVE-derived rules list every scoring source
    * here, because GHSA, NVD and the CNA regularly disagree on the same CVE.

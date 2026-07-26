@@ -1,11 +1,17 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`corpus findings snapshot > ecopaste 1`] = `[]`;
+exports[`corpus findings snapshot > clean/ecopaste 1`] = `[]`;
 
-exports[`corpus findings snapshot > surrealist 1`] = `[]`;
+exports[`corpus findings snapshot > clean/surrealist 1`] = `[]`;
 
-exports[`corpus findings snapshot > tauri-helloworld-v1 1`] = `[]`;
+exports[`corpus findings snapshot > clean/tauri-helloworld-v1 1`] = `[]`;
 
-exports[`corpus findings snapshot > tauri-isolation-v1 1`] = `[]`;
+exports[`corpus findings snapshot > clean/tauri-isolation-v1 1`] = `[]`;
 
-exports[`corpus findings snapshot > yaak 1`] = `[]`;
+exports[`corpus findings snapshot > clean/yaak 1`] = `[]`;
+
+exports[`corpus findings snapshot > true-positive/tauri-api-v1 1`] = `
+[
+  "TA-V1-001 high/high src-tauri/tauri.conf.json:87",
+]
+`;

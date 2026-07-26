@@ -124,12 +124,23 @@ gate is a separate step.
 Rule documentation lives in the finding text itself — each finding explains why the setting
 is dangerous and how to confirm or fix it, so the report is readable without this table.
 
-| ID | Applies to | Detects | Severity / confidence |
-| --- | --- | --- | --- |
-| `TA-CONF-002` | v1 + v2 | `security.dangerousDisableAssetCspModification` | `true` → high / high · directive list → medium / heuristic |
-| `TA-V1-001` | v1 | `tauri.allowlist.all: true` — every v1 API enabled at once | high / high |
-| `TA-V1-002` | v1 | `tauri.security.dangerousRemoteDomainIpcAccess` — remote origins granted IPC | `enableTauriAPI` or plugins → high / high · domain-only → medium / heuristic |
-| `TA-V1-003` | v1 | `tauri.security.dangerousUseHttpScheme: true` | medium / high |
+| ID | Applies to | Detects | Severity / confidence | Evidence |
+| --- | --- | --- | --- | --- |
+| `TA-CONF-002` | v1 + v2 | `security.dangerousDisableAssetCspModification` | `true` → high / high · directive list → medium / heuristic | synthetic |
+| `TA-V1-001` | v1 | `tauri.allowlist.all: true` — every v1 API enabled at once | high / high | real-world |
+| `TA-V1-002` | v1 | `tauri.security.dangerousRemoteDomainIpcAccess` — remote origins granted IPC | `enableTauriAPI` or plugins → high / high · domain-only → medium / heuristic | synthetic |
+| `TA-V1-003` | v1 | `tauri.security.dangerousUseHttpScheme: true` | medium / high | synthetic |
+
+**Evidence** records how the rule was shown to fire on genuine misconfiguration, and is
+carried as rule metadata rather than documentation, so a test can check it. `real-world`
+means the rule trips an unmodified third-party config vendored in
+`tests/corpus/true-positive/`; `synthetic` means it has only been demonstrated against
+fixtures written for this repository. A rule may understate its evidence but cannot claim
+`real-world` without a corpus app to back it — that direction is asserted in the suite.
+
+The asymmetry is expected rather than a gap to close: every rule is proven not to fire on
+six real correctly written applications, but settings this dangerous are rare in shipped
+code, so the opposite proof is harder to come by.
 
 Two of these grade themselves by content rather than by presence.
 `dangerousDisableAssetCspModification: true` switches Tauri's CSP rewriting off entirely,
@@ -161,11 +172,8 @@ nobody keeps in their pipeline.
 - **Dataflow, when it arrives, will be single-function-scope only.** Cross-function flow,
   return values, and reassignment are not tracked.
 - **Rust source analysis is not implemented yet** (planned, tree-sitter based).
-- **Evidence strength differs per rule.** The clean corpus proves no rule fires on six real
-  correctly written apps. Proving the reverse — that a rule fires on real misconfigured
-  code — currently only holds for `TA-V1-001`, which trips Tauri's own `examples/api`
-  config. The other rules are validated against fixtures only, because settings this
-  dangerous are rare in shipped applications.
+- **Evidence strength differs per rule**, and each rule says which it has — see the
+  `Evidence` column above.
 
 ## Roadmap
 
