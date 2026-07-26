@@ -1,0 +1,2 @@
+{ "productName": "vite-fixture", "version": "0.1.0", "identifier": "com.example.vite",
+  "app": { "security": { "csp": "default-src 'self'" } } }

@@ -1,7 +1,9 @@
 import { TA_CONF_002_V1, TA_CONF_002_V2 } from './TA-CONF-002.js';
+import { TA_DEP_001 } from './TA-DEP-001.js';
 import { TA_V1_001 } from './TA-V1-001.js';
 import { TA_V1_002 } from './TA-V1-002.js';
 import { TA_V1_003 } from './TA-V1-003.js';
+import { TA_VITE_001 } from './TA-VITE-001.js';
 
 import type { Rule } from './types.js';
 
@@ -24,4 +26,6 @@ export const ALL_RULES: readonly Rule[] = [
   TA_V1_001,
   TA_V1_002,
   TA_V1_003,
+  TA_DEP_001,
+  TA_VITE_001,
 ];

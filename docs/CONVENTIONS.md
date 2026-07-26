@@ -26,6 +26,12 @@ in every change.
 - **Unanalyzable is not clean.** A parse failure, an unvalidatable schema, an
   undeterminable version, or a broken config degrades to a visible warning — never to a
   silent "zero findings means safe". **This propagates all the way to the exit code.**
+- **Never carry one rule's polarity over to the next.** Establish from the primary source,
+  per rule, whether the dangerous state is a value being present or absent. Every S4 rule
+  fires on a setting explicitly turned on, so absence is safe there. CVE-2025-31477 is the
+  exact inverse: `plugins.shell.open` being **unset** is the affected state, because the
+  default validation it implies was the thing that was broken. Assuming the familiar
+  polarity would have produced a false negative across the entire affected population.
 
 ## Working with severity and confidence
 

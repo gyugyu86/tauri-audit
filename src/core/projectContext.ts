@@ -2,6 +2,7 @@ import path from 'node:path';
 
 import semver from 'semver';
 
+import { loadAdvisories } from './advisories.js';
 import { detectConfigVersion, type ConfigVersionVerdict } from './configVersion.js';
 import type { DependencyVersion, Ecosystem } from './dependencies.js';
 import { discover, readDiscoveredFile, type DiscoveryOptions } from './discovery.js';
@@ -304,7 +305,15 @@ export function buildProjectContext(rootDir: string, options: DiscoveryOptions =
     switch (file.kind) {
       case 'tauri-config': {
         if (!isRecord(doc.value)) {
+          // Valid JSON that is not an object — an array, a bare string, `null`.
+          // Counting it and moving on would leave the run reporting zero findings
+          // and exiting 0, which reads as "this config is fine" when in truth no
+          // rule ever saw it.
           project.filesUnparsable += 1;
+          degrade(
+            `${shortPath}: parsed, but its root is not an object, so no config rules ran ` +
+              'over it',
+          );
           break;
         }
         const verdict = detectConfigVersion(doc.value);
@@ -330,6 +339,16 @@ export function buildProjectContext(rootDir: string, options: DiscoveryOptions =
       case 'capability': {
         if (isRecord(doc.value)) {
           project.capabilities.push({ file: file.path, doc, value: doc.value });
+        } else {
+          // A capability that cannot be read is worse than a missing rule: rules
+          // that check whether a permission is *absent* would conclude it is not
+          // granted and suppress a real finding. Silence here turns into a false
+          // negative elsewhere, so it has to be visible.
+          project.filesUnparsable += 1;
+          degrade(
+            `${shortPath}: parsed, but its root is not an object, so the permissions it ` +
+              'grants could not be determined',
+          );
         }
         break;
       }
@@ -386,6 +405,18 @@ export function buildProjectContext(rootDir: string, options: DiscoveryOptions =
         break;
       }
     }
+  }
+
+  // Losing the advisory database silently would be the worst kind of clean
+  // result: every dependency rule would return nothing, and the run would exit 0
+  // reporting no known-vulnerable dependencies when in fact none were checked.
+  // `loadAdvisories` records why it failed precisely so this can be said out loud.
+  const advisoryLoad = loadAdvisories();
+  if (advisoryLoad.error !== undefined) {
+    degrade(
+      `the advisory database could not be loaded (${advisoryLoad.error}), so no dependency ` +
+        'was checked against known vulnerabilities',
+    );
   }
 
   return project;

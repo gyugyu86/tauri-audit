@@ -130,6 +130,8 @@ is dangerous and how to confirm or fix it, so the report is readable without thi
 | `TA-V1-001` | v1 | `tauri.allowlist.all: true` — every v1 API enabled at once | high / high | real-world |
 | `TA-V1-002` | v1 | `tauri.security.dangerousRemoteDomainIpcAccess` — remote origins granted IPC | `enableTauriAPI` or plugins → high / high · domain-only → medium / heuristic | synthetic |
 | `TA-V1-003` | v1 | `tauri.security.dangerousUseHttpScheme: true` | medium / high | synthetic |
+| `TA-DEP-001` | v2 | shell plugin ≤ 2.2.0 with an unset `open` scope (CVE-2025-31477) | high / heuristic | synthetic |
+| `TA-VITE-001` | any | Vite `envPrefix` covering Tauri signing variables (CVE-2023-46115) | low / heuristic | synthetic |
 
 **Evidence** records how the rule was shown to fire on genuine misconfiguration, and is
 carried as rule metadata rather than documentation, so a test can check it. `real-world`
@@ -141,6 +143,12 @@ fixtures written for this repository. A rule may understate its evidence but can
 The asymmetry is expected rather than a gap to close: every rule is proven not to fire on
 six real correctly written applications, but settings this dangerous are rare in shipped
 code, so the opposite proof is harder to come by.
+
+**Polarity is decided per rule, from the advisory.** For every configuration rule above,
+the dangerous state is a setting explicitly turned on, so an absent key is safe.
+`TA-DEP-001` is the exact inverse: an **unset** `plugins.shell.open` is the affected state,
+because the default validation that an unset value selects is the part that was broken.
+Assuming the familiar polarity would have missed the entire affected population.
 
 Two of these grade themselves by content rather than by presence.
 `dangerousDisableAssetCspModification: true` switches Tauri's CSP rewriting off entirely,
@@ -169,6 +177,11 @@ nobody keeps in their pipeline.
   confidently placed as v1 or v2, no config rules are applied to it and a warning is
   logged — applying v1 rules to a v2 config (or the reverse) is a pure false-positive
   source.
+- **`vite.config.*` is read by text scan, not parsed.** There is no JavaScript parser in
+  this package yet, so a `envPrefix` built from variables, spread from another object, or
+  written as a template literal is **not analyzed** and produces no finding. Comments and
+  string literals are masked before the option is looked for, so a commented-out or
+  quoted mention does not trigger it either.
 - **Dataflow, when it arrives, will be single-function-scope only.** Cross-function flow,
   return values, and reassignment are not tracked.
 - **Rust source analysis is not implemented yet** (planned, tree-sitter based).

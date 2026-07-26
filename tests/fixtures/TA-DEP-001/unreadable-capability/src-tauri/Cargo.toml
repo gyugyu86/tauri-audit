@@ -1,0 +1,6 @@
+[package]
+name = "shell-fixture"
+version = "0.1.0"
+
+[dependencies]
+tauri-plugin-shell = "2.2.0"

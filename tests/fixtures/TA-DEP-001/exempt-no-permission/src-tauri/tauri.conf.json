@@ -1,0 +1,6 @@
+{
+  "productName": "shell-fixture",
+  "version": "0.1.0",
+  "identifier": "com.example.shell",
+  "app": { "security": { "csp": "default-src 'self'" } }
+}

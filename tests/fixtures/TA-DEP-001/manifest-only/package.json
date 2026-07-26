@@ -1,0 +1,5 @@
+{
+  "name": "shell-fixture",
+  "version": "0.1.0",
+  "dependencies": { "@tauri-apps/plugin-shell": "2.2.0" }
+}

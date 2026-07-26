@@ -1,0 +1,6 @@
+[package]
+name = "v1-app"
+version = "0.1.0"
+
+[dependencies]
+tauri = "1.8"
