@@ -23,7 +23,7 @@
 # Usage: scripts/check-authorship-traces.sh
 # Exit:  0 clean, 1 if anything matched.
 
-set -uo pipefail
+set -euo pipefail
 
 PATTERN='claude|anthropic|copilot|chatgpt|openai|gpt-4|gpt-5|\bllm\b|生成AI|人工知能|co-authored|ai-generated|ai-assisted|gemini|codex'
 

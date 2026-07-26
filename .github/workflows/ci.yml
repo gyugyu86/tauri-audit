@@ -30,3 +30,29 @@ jobs:
       # vendored Tauri schemas are committed, and the analyzer never executes
       # the projects it analyzes.
       - run: npm test
+
+  verify:
+    # The publication gates, run by CI rather than trusted to be run locally.
+    # Both exist to guard something irreversible, and a gate that only runs when
+    # somebody remembers is not a gate — one of these was bypassed for real by a
+    # shell mistake that read the wrong exit code before a push.
+    runs-on: ubuntu-latest
+    steps:
+      # Full history: the trace scan reads every commit message, and a shallow
+      # clone would silently check only the most recent one.
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.x'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Nothing describes how this repository was authored
+        run: npm run verify:traces
+
+      - name: Vendored corpus files are unmodified
+        run: npm run verify:corpus

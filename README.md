@@ -103,6 +103,20 @@ include `heuristic` findings of those severities.
 This exact predicate is also the pass condition of the clean-corpus regression test, so
 "the tool would not break this app's CI" has one definition, checked in one place.
 
+#### What the corpus result actually says
+
+Two claims live here, and they are not the same claim:
+
+- **Ten real third-party applications produce zero high-confidence findings.** This is what
+  "no false positives" means, and it holds for all ten.
+- **Eight of those ten are analyzed completely.** The other two — Tauri's own v1
+  `helloworld` and `isolation` examples — carry a `tauri.conf.json` and no `Cargo.toml`,
+  because upstream keeps their Rust manifests elsewhere. Their dependency rules therefore
+  examined nothing, so those runs exit `2` rather than `0`, and say why.
+
+Eliding the difference would be the same mistake this tool refuses to make about its own
+output. Per-application coverage is recorded in `tests/corpus/`, next to the findings.
+
 #### Unanalyzable is not clean
 
 Exit `2` covers more than bad flags. If a config could not be parsed, could not be placed as
@@ -173,15 +187,26 @@ judgement calls surfaced for a human, which is why the v2 rules are heuristic an
 do not gate. If you are on v2 and this tool reports nothing gating, that is the expected
 result and largely a credit to v2's design.
 
-### About the Tauri sample in the corpus
+### About the applications in `true-positive/`
 
-`tests/corpus/true-positive/` contains Tauri's own `examples/api` configuration, which
-trips `TA-V1-001` by setting `allowlist.all: true`. That is **not a defect in Tauri**. It
-is an API demonstration whose purpose is to exercise every API in one place, so enabling
-all of them is correct for what it is and wrong only if copied into a product. It sits in
-the corpus because it is a permissively licensed, real configuration written by people who
-know the framework — which makes it far better evidence than a fixture written by whoever
-wrote the rule.
+`tests/corpus/true-positive/` holds real configurations that trip a rule. They are there as
+evidence that the rules detect something, which is the claim the clean corpus cannot make.
+Neither entry is a report about an application being insecure.
+
+Tauri's own `examples/api` trips `TA-V1-001` by setting `allowlist.all: true`. That is **not
+a defect in Tauri**: it is an API demonstration whose purpose is to exercise every API in one
+place, so enabling all of them is correct for what it is and wrong only if copied into a
+product.
+
+KiwiTalk trips the same rule. It is included as **a case where the pattern this rule detects
+appears in a real application** — nothing more. What the finding states is a fact about a
+public configuration file: `allowlist.all: true` enables every v1 API family at once. Whether
+that is reachable in that application depends on its frontend, which this tool does not
+analyze, and no claim is made about it.
+
+Both are here for the same reason: a permissively licensed configuration written by people
+who know the framework is far better evidence than a fixture written by whoever wrote the
+rule.
 
 **Polarity is decided per rule, from the primary source.** For most rules above the
 dangerous state is a setting explicitly turned on, so an absent key is safe. Two are the
@@ -192,7 +217,7 @@ enforces nothing. Assuming the familiar polarity in either case would have misse
 entire affected population.
 
 `TA-CONF-001` therefore fires on a large share of real applications, which is intended: it
-is `medium`/`heuristic` and can never fail a build. Three of the six corpus applications
+is `medium`/`heuristic` and can never fail a build. Five of the ten corpus applications
 ship without a CSP, and reporting that is correct rather than a false positive.
 
 Two of these grade themselves by content rather than by presence.

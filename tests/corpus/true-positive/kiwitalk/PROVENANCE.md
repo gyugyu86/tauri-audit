@@ -35,10 +35,15 @@ is a **true positive**, so it moved here:
   author scoped one family while `all: true` enables every other family wholesale is what
   makes this a clear over-grant rather than a deliberate choice.
 
-To be precise about what is and is not being claimed: this is a factual statement about a
-public configuration file, and it is what the setting does. Whether it is exploitable in this
-application depends on its frontend, which is not analyzed here. Nothing about this indicates
-a defect in the application beyond a permission grant wider than v1's model intends.
+To be precise about what is and is not being claimed: this entry records that **the pattern
+this rule detects appears in a real application**. That is its whole purpose here. The
+finding states a fact about a public configuration file — `allowlist.all: true` enables every
+v1 API family — and nothing beyond it. Whether that is reachable depends on the application's
+frontend, which this tool does not analyze, and no claim is made about it.
+
+The same framing applies as to `tauri-api-v1` next door: an application appears in this
+directory because its configuration exercises a rule, not because anyone is asserting it is
+insecure.
 
 ## What it is worth to the corpus
 
