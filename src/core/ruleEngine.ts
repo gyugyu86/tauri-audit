@@ -66,6 +66,18 @@ function schemaFindings(project: TauriProject): Finding[] {
 export function runRules(project: TauriProject, rules: readonly Rule[]): RuleEngineResult {
   const findings: Finding[] = [];
 
+  // An empty registry means nothing was checked, so "zero findings" is silence
+  // rather than safety — the same failure shape as a broken advisory database.
+  // A bad merge or a partial build can produce this, and without saying so the
+  // tool would report a clean result while doing no work at all.
+  if (rules.length === 0) {
+    project.incomplete.push(
+      'no rules were registered, so nothing was checked. A result of zero findings says ' +
+        'nothing about this project.',
+    );
+    project.warnings.push('no rules were registered, so nothing was checked');
+  }
+
   const configRules = rules.filter((rule): rule is ConfigRule => rule.kind === 'config');
   const capabilityRules = rules.filter((rule): rule is CapabilityRule => rule.kind === 'capability');
   const projectRules = rules.filter((rule): rule is ProjectRule => rule.kind === 'project');

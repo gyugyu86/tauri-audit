@@ -26,6 +26,12 @@ in every change.
 - **Unanalyzable is not clean.** A parse failure, an unvalidatable schema, an
   undeterminable version, or a broken config degrades to a visible warning — never to a
   silent "zero findings means safe". **This propagates all the way to the exit code.**
+- **Every new layer must answer: if this layer dies, does the run still exit 0 with no
+  findings?** A failed analysis and a clean project produce byte-identical output unless
+  something says otherwise, and suppression logic is always dangerous in this direction —
+  a capability file that cannot be read makes a rule asking "is this permission absent?"
+  answer yes. `tests/core/silentFailure.test.ts` enumerates the known paths and asserts
+  each degrades; add an entry there rather than relying on the next failure being noticed.
 - **Never carry one rule's polarity over to the next.** Establish from the primary source,
   per rule, whether the dangerous state is a value being present or absent. Every S4 rule
   fires on a setting explicitly turned on, so absence is safe there. CVE-2025-31477 is the

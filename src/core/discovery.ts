@@ -115,8 +115,15 @@ export function discover(rootDir: string, options: DiscoveryOptions = {}): Disco
         suppressErrors: true,
         ignore: IGNORED_DIRECTORIES,
       });
-    } catch {
-      // A glob failure on one kind must not lose the others.
+    } catch (error) {
+      // A glob failure on one kind must not lose the others — but it must not
+      // pass unmentioned either. Losing the `capability` kind silently, for
+      // example, makes rules that ask whether a permission is granted conclude
+      // it is not, which suppresses real findings.
+      warnings.push(
+        `could not search for ${kind} files (${error instanceof Error ? error.message : String(error)}), ` +
+          'so any of them were not analyzed',
+      );
       continue;
     }
 
