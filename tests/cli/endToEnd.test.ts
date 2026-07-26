@@ -99,10 +99,20 @@ describe('a project with a broken config is never reported as clean', () => {
 /**
  * The same assertions against the real built binary.
  *
- * Skipped when `dist/` is absent so `npm test` works before a build; CI always
- * builds first, and the composition tests above cover the logic regardless.
+ * Skipped when `dist/` is absent, so `npm test` still works before a build. That
+ * convenience must not extend to CI: if the build step were ever reordered or
+ * dropped, these would skip and the pipeline would stay green while nothing had
+ * exercised the shipped binary. In CI a missing build is a failure, not a skip.
  */
-describe.skipIf(!existsSync(CLI))('built CLI binary', () => {
+const BUILT = existsSync(CLI);
+
+describe('built CLI binary is available to test', () => {
+  it.skipIf(process.env['CI'] === undefined)('dist/ exists in CI', () => {
+    expect(BUILT, 'dist/ is missing — run `npm run build` before `npm test`').toBe(true);
+  });
+});
+
+describe.skipIf(!BUILT)('built CLI binary', () => {
   function run(args: string[]): { status: number; stdout: string; stderr: string } {
     try {
       const stdout = execFileSync(process.execPath, [CLI, ...args], {
