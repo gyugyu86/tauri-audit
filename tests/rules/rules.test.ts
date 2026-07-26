@@ -223,12 +223,22 @@ describe('rule metadata contract', () => {
     }
   });
 
-  it('registers TA-CONF-002 once per generation and nothing else twice', () => {
+  it('registers a rule once per generation only where the field exists in both', () => {
+    // TA-CONF-001 and TA-CONF-002 read fields present in both v1 and v2 at
+    // different paths, and `appliesTo` names one generation, so each ships as two
+    // objects sharing an ID. Anything else appearing twice is a duplicate
+    // registration, which would report the same finding twice.
+    const dualGeneration = new Set(['TA-CONF-001', 'TA-CONF-002']);
     const counts = new Map<string, number>();
     for (const rule of ALL_RULES) counts.set(rule.id, (counts.get(rule.id) ?? 0) + 1);
-    expect(counts.get('TA-CONF-002')).toBe(2);
+
+    for (const id of dualGeneration) {
+      expect(counts.get(id), `${id} should be registered for both generations`).toBe(2);
+    }
     for (const [id, count] of counts) {
-      if (id !== 'TA-CONF-002') expect(count, `${id} registered ${String(count)} times`).toBe(1);
+      if (!dualGeneration.has(id)) {
+        expect(count, `${id} registered ${String(count)} times`).toBe(1);
+      }
     }
   });
 });

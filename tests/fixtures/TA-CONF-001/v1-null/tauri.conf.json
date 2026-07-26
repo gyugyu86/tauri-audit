@@ -1,0 +1,3 @@
+{ "build": { "distDir":"../d","devPath":"../d" },
+  "package": { "productName":"a","version":"0.1.0" },
+  "tauri": { "allowlist": { "all": false }, "security": { "csp": null } } }

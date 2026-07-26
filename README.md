@@ -126,29 +126,42 @@ is dangerous and how to confirm or fix it, so the report is readable without thi
 
 | ID | Applies to | Detects | Severity / confidence | Evidence |
 | --- | --- | --- | --- | --- |
+| `TA-CONF-001` | v1 + v2 | `security.csp` unset or `null` — no policy is enforced | medium / heuristic | real-world |
 | `TA-CONF-002` | v1 + v2 | `security.dangerousDisableAssetCspModification` | `true` → high / high · directive list → medium / heuristic | synthetic |
 | `TA-V1-001` | v1 | `tauri.allowlist.all: true` — every v1 API enabled at once | high / high | real-world |
 | `TA-V1-002` | v1 | `tauri.security.dangerousRemoteDomainIpcAccess` — remote origins granted IPC | `enableTauriAPI` or plugins → high / high · domain-only → medium / heuristic | synthetic |
 | `TA-V1-003` | v1 | `tauri.security.dangerousUseHttpScheme: true` | medium / high | synthetic |
 | `TA-DEP-001` | v2 | shell plugin ≤ 2.2.0 with an unset `open` scope (CVE-2025-31477) | high / heuristic | synthetic |
 | `TA-VITE-001` | any | Vite `envPrefix` covering Tauri signing variables (CVE-2023-46115) | low / heuristic | synthetic |
+| `TA-CAP-003` | v2 | capability filesystem scope reaching past the application | medium / heuristic | synthetic |
 
-**Evidence** records how the rule was shown to fire on genuine misconfiguration, and is
-carried as rule metadata rather than documentation, so a test can check it. `real-world`
-means the rule trips an unmodified third-party config vendored in
-`tests/corpus/true-positive/`; `synthetic` means it has only been demonstrated against
-fixtures written for this repository. A rule may understate its evidence but cannot claim
-`real-world` without a corpus app to back it — that direction is asserted in the suite.
+**Evidence** records whether the rule has been shown to fire on real third-party code, and
+is carried as rule metadata rather than documentation, so a test can check it. `real-world`
+means the rule fires on an unmodified config vendored in `tests/corpus/`; `synthetic` means
+it has only been demonstrated against fixtures written for this repository. A rule may
+understate its evidence but cannot claim `real-world` without a corpus application to back
+it — that direction is asserted in the suite.
 
-The asymmetry is expected rather than a gap to close: every rule is proven not to fire on
-six real correctly written applications, but settings this dangerous are rare in shipped
-code, so the opposite proof is harder to come by.
+Firing on a *correctly written* application still counts, and is worth reading carefully:
+it proves the rule matches real code, and it simultaneously proves the rule must stay
+`heuristic`, since a high-confidence finding there would fail those projects' builds. That
+is the position `TA-CONF-001` is in.
 
-**Polarity is decided per rule, from the advisory.** For every configuration rule above,
-the dangerous state is a setting explicitly turned on, so an absent key is safe.
-`TA-DEP-001` is the exact inverse: an **unset** `plugins.shell.open` is the affected state,
-because the default validation that an unset value selects is the part that was broken.
-Assuming the familiar polarity would have missed the entire affected population.
+Most rules are `synthetic` because the settings they look for are rare in shipped code —
+which is the point of them being dangerous. That asymmetry is expected rather than a gap to
+close.
+
+**Polarity is decided per rule, from the primary source.** For most rules above the
+dangerous state is a setting explicitly turned on, so an absent key is safe. Two are the
+exact inverse. `TA-DEP-001` treats an **unset** `plugins.shell.open` as affected, because
+the default validation an unset value selects is the part that was broken. `TA-CONF-001`
+fires when no CSP is configured, because the field defaults to `null` and a null CSP
+enforces nothing. Assuming the familiar polarity in either case would have missed the
+entire affected population.
+
+`TA-CONF-001` therefore fires on a large share of real applications, which is intended: it
+is `medium`/`heuristic` and can never fail a build. Three of the six corpus applications
+ship without a CSP, and reporting that is correct rather than a false positive.
 
 Two of these grade themselves by content rather than by presence.
 `dangerousDisableAssetCspModification: true` switches Tauri's CSP rewriting off entirely,

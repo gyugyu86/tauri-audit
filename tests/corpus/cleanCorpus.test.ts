@@ -123,11 +123,18 @@ describe('true-positive corpus does trip rules', () => {
 });
 
 describe('rule evidence metadata matches reality', () => {
-  /** Rule IDs that actually fire somewhere in tests/corpus/true-positive/. */
+  /**
+   * Rule IDs that fire on any unmodified third-party config in the corpus.
+   *
+   * Both groups count. A rule firing in `clean/` has demonstrated it matches
+   * real shipped code — TA-CONF-001 fires on three real applications that ship
+   * without a CSP — and that is exactly why such a rule must stay heuristic.
+   */
   const firedOnRealCode = new Set(
-    truePositiveApps.flatMap((app) =>
-      scan(path.join(TRUE_POSITIVE, app)).findings.map((finding) => finding.ruleId),
-    ),
+    [
+      ...truePositiveApps.map((app) => path.join(TRUE_POSITIVE, app)),
+      ...cleanApps.map((app) => path.join(CLEAN, app)),
+    ].flatMap((root) => scan(root).findings.map((finding) => finding.ruleId)),
   );
 
   it.each(ALL_RULES.map((rule) => [rule.id, rule.evidence] as const))(

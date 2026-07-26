@@ -25,7 +25,15 @@ import type { Finding, Severity } from '../types.js';
  * each rule body.
  */
 export type RuleEvidence =
-  /** Trips at least one unmodified config in `tests/corpus/true-positive/`. */
+  /**
+   * Fires on at least one unmodified third-party config in `tests/corpus/`.
+   *
+   * Either group counts. Firing in `true-positive/` means the rule catches a
+   * genuine misconfiguration; firing in `clean/` means the pattern occurs in
+   * correctly written applications, which is evidence the rule matches real code
+   * — and simultaneously proof it must stay heuristic, since a high-confidence
+   * finding there would fail those projects' builds.
+   */
   | 'real-world'
   /** Demonstrated only against fixtures authored for this repository. */
   | 'synthetic-only';

@@ -1,14 +1,27 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`corpus findings snapshot > clean/ecopaste 1`] = `[]`;
+exports[`corpus findings snapshot > clean/ecopaste 1`] = `
+[
+  "TA-CONF-001 medium/heuristic src-tauri/tauri.conf.json:13",
+]
+`;
 
-exports[`corpus findings snapshot > clean/surrealist 1`] = `[]`;
+exports[`corpus findings snapshot > clean/surrealist 1`] = `
+[
+  "TA-CONF-001 medium/heuristic src-tauri/tauri.conf.json:90",
+]
+`;
 
 exports[`corpus findings snapshot > clean/tauri-helloworld-v1 1`] = `[]`;
 
 exports[`corpus findings snapshot > clean/tauri-isolation-v1 1`] = `[]`;
 
-exports[`corpus findings snapshot > clean/yaak 1`] = `[]`;
+exports[`corpus findings snapshot > clean/yaak 1`] = `
+[
+  "TA-CONF-001 medium/heuristic crates-tauri/yaak-app-client/tauri.conf.json:14",
+  "TA-CONF-001 medium/heuristic crates-tauri/yaak-app-proxy/tauri.conf.json:11",
+]
+`;
 
 exports[`corpus findings snapshot > true-positive/tauri-api-v1 1`] = `
 [

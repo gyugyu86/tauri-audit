@@ -1,0 +1,1 @@
+{ "identifier": "default", "windows": ["main"], "permissions": [{"identifier":"shell:allow-open","allow":["$HOME/**"]}] }

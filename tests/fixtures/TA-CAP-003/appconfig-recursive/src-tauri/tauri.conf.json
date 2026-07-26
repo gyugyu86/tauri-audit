@@ -1,0 +1,2 @@
+{ "productName":"c","version":"0.1.0","identifier":"com.example.c",
+  "app": { "security": { "csp": "default-src 'self'" } } }

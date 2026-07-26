@@ -1,0 +1,1 @@
+{ "identifier": "default", "windows": ["main"], "permissions": [{"identifier":"fs:allow-read","allow":["$HOME/.myapp/config.json"]}] }

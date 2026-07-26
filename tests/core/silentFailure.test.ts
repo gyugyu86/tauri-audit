@@ -95,6 +95,8 @@ describe('rule registry', () => {
     // tests would still pass with a missing rule — they assert an absence.
     const ids = [...new Set(ALL_RULES.map((rule) => rule.id))].sort();
     expect(ids).toEqual([
+      'TA-CAP-003',
+      'TA-CONF-001',
       'TA-CONF-002',
       'TA-DEP-001',
       'TA-V1-001',
