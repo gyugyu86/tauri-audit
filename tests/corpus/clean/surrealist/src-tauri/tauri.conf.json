@@ -1,0 +1,93 @@
+{
+	"productName": "Surrealist",
+	"version": "../package.json",
+	"identifier": "com.surrealdb.surrealist",
+	"build": {
+		"beforeDevCommand": "bun run dev",
+		"beforeBuildCommand": "bun run build",
+		"frontendDist": "../dist",
+		"devUrl": "http://localhost:1420"
+	},
+	"bundle": {
+		"active": true,
+		"category": "DeveloperTool",
+		"shortDescription": "",
+		"longDescription": "",
+		"copyright": "",
+		"targets": [
+			"nsis",
+			"dmg",
+			"app",
+			"appimage",
+			"deb",
+			"rpm"
+		],
+		"createUpdaterArtifacts": true,
+		"externalBin": [],
+		"resources": [],
+		"icon": [
+			"icons/32x32.png",
+			"icons/128x128.png",
+			"icons/128x128@2x.png",
+			"icons/icon.icns",
+			"icons/icon.ico"
+		],
+		"fileAssociations": [
+			{
+				"ext": ["surql", "surrealql"],
+				"name": "SurrealQL",
+				"mimeType": "text/x-surrealql"
+			}
+		],
+		"linux": {
+			"deb": {
+				"depends": [],
+				"desktopTemplate": "res/desktop-template.desktop.hbs"
+			},
+			"rpm": {
+				"desktopTemplate": "res/desktop-template.desktop.hbs"
+			}
+		},
+		"macOS": {
+			"entitlements": null,
+			"exceptionDomain": "",
+			"frameworks": [],
+			"providerShortName": null,
+			"signingIdentity": null,
+			"dmg": {
+				"background": "res/dmg-background.png"
+			}
+		},
+		"windows": {
+			"certificateThumbprint": null,
+			"digestAlgorithm": "sha256",
+			"timestampUrl": "",
+			"nsis": {
+				"installerIcon": "icons/icon.ico",
+				"headerImage": "res/nsis-header.bmp",
+				"sidebarImage": "res/nsis-sidebar.bmp",
+				"template": "res/installer.nsi"
+			}
+		}
+	},
+	"plugins": {
+		"updater": {
+			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDcyRDczRTc5RDA4RjVGOEUKUldTT1g0L1FlVDdYY2c5cE1KYmNMUDcrR05CdU9DK3E4Vk1UeGNOOE5wd2ZZb1VMNGdmVm9NMGoK",
+			"endpoints": [
+				"https://app.surrealdb.com/latest.json"
+			]
+		},
+		"deep-link": {
+			"mobile": [],
+			"desktop": {
+				"schemes": ["surrealist"]
+			}
+		}
+	},
+	"app": {
+		"withGlobalTauri": false,
+		"security": {
+			"csp": null
+		}
+	}
+}
