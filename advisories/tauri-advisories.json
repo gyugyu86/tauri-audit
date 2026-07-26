@@ -1,0 +1,374 @@
+{
+  "$schema": "./schema.json",
+  "updated": "2026-07-20",
+  "advisories": [
+    {
+      "id": "GHSA-7gmj-67g7-phm9",
+      "aliases": ["CVE-2026-42184"],
+      "summary": "is_local_url() misclassifies remote URLs as trusted local origins. Any URL beginning with http://app. passes the check, including http://app.evil.com/.",
+      "severity": "medium",
+      "severitySources": [
+        { "source": "GHSA", "label": "Moderate" },
+        {
+          "source": "GHSA",
+          "score": 6.1,
+          "cvssVersion": "4.0",
+          "vector": "CVSS:4.0/AV:N/AC:H/AT:P/PR:N/UI:P/VC:L/VI:H/VA:L/SC:N/SI:N/SA:N"
+        }
+      ],
+      "packages": [
+        {
+          "ecosystem": "cargo",
+          "name": "tauri",
+          "stableRanges": [">=2.0.0 <=2.11.0"],
+          "patched": ["2.11.1"]
+        }
+      ],
+      "exemptions": [
+        {
+          "description": "Windows and Android only. macOS and Linux are not affected.",
+          "verify": "If you do not ship for Windows or Android, this does not apply.",
+          "staticallyCheckable": false
+        },
+        {
+          "description": "Only applications that register a custom URI scheme via register_uri_scheme_protocol are affected.",
+          "verify": "Search your Rust sources for register_uri_scheme_protocol. If it does not appear, this does not apply.",
+          "staticallyCheckable": false
+        }
+      ],
+      "platforms": ["windows", "android"],
+      "suggestedConfidence": "heuristic",
+      "references": [
+        "https://github.com/tauri-apps/tauri/security/advisories/GHSA-7gmj-67g7-phm9"
+      ]
+    },
+    {
+      "id": "GHSA-c9pr-q8gx-3mgp",
+      "aliases": ["CVE-2025-31477"],
+      "summary": "The shell plugin's open endpoint does not validate its argument against the configured scope, allowing arbitrary command execution.",
+      "severity": "high",
+      "severitySources": [
+        { "source": "GHSA", "label": "High", "note": "primary source for this rule's severity" },
+        {
+          "source": "GHSA/OSV",
+          "score": 9.3,
+          "cvssVersion": "4.0",
+          "vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H"
+        },
+        {
+          "source": "NVD",
+          "score": 9.8,
+          "cvssVersion": "3.1",
+          "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+          "note": "nvd@nist.gov, Primary"
+        }
+      ],
+      "cwe": ["CWE-20"],
+      "packages": [
+        {
+          "ecosystem": "npm",
+          "name": "@tauri-apps/plugin-shell",
+          "stableRanges": ["<=2.2.0"],
+          "patched": ["2.2.1"]
+        },
+        {
+          "ecosystem": "cargo",
+          "name": "tauri-plugin-shell",
+          "stableRanges": ["<=2.2.0"],
+          "patched": ["2.2.1"]
+        }
+      ],
+      "exemptions": [
+        {
+          "description": "Not affected if open is explicitly set to true, or if a validation regex is configured for it.",
+          "verify": "Check the shell plugin configuration: an explicit \"open\": true, or a regex such as \"tauri^\" that matches nothing, means this advisory does not apply.",
+          "staticallyCheckable": true
+        }
+      ],
+      "suggestedConfidence": "heuristic",
+      "deprecationNote": "shell open was deprecated in 2.1.0 (#[deprecated(since = \"2.1.0\", note = \"Use tauri-plugin-opener instead.\")]). Migrating to tauri-plugin-opener is the recommended fix.",
+      "references": [
+        "https://github.com/tauri-apps/plugins-workspace/security/advisories/GHSA-c9pr-q8gx-3mgp",
+        "https://osv.dev/vulnerability/GHSA-c9pr-q8gx-3mgp",
+        "https://v2.tauri.app/plugin/opener/"
+      ]
+    },
+    {
+      "id": "GHSA-57fm-592m-34r7",
+      "aliases": ["CVE-2024-35222"],
+      "summary": "Origin checks can be bypassed from an iframe, exposing the IPC bridge to untrusted frames.",
+      "severity": "medium",
+      "severitySources": [
+        { "source": "GHSA", "label": "Moderate" },
+        {
+          "source": "GHSA",
+          "score": 5.9,
+          "cvssVersion": "3.1",
+          "vector": "AV:N/AC:H/PR:L/UI:R/S:U/C:H/I:L/A:L"
+        }
+      ],
+      "cwe": ["CWE-284"],
+      "packages": [
+        {
+          "ecosystem": "cargo",
+          "name": "tauri",
+          "stableRanges": ["<=1.6.6"],
+          "prereleaseRanges": [">=2.0.0-beta.0 <=2.0.0-beta.19"],
+          "patched": ["1.6.7", "2.0.0-beta.20"]
+        }
+      ],
+      "exemptions": [
+        {
+          "description": "Requires script execution inside a script-enabled iframe, e.g. via XSS.",
+          "verify": "If your app never renders untrusted content in an iframe with scripts enabled, exploitation is not possible.",
+          "staticallyCheckable": false
+        }
+      ],
+      "suggestedConfidence": "heuristic",
+      "references": [
+        "https://github.com/tauri-apps/tauri/security/advisories/GHSA-57fm-592m-34r7"
+      ]
+    },
+    {
+      "id": "GHSA-2rcp-jvr4-r259",
+      "aliases": ["CVE-2023-46115"],
+      "summary": "The updater private key could be embedded in frontend bundles when a Vite envPrefix includes TAURI_.",
+      "severity": "low",
+      "severitySources": [
+        {
+          "source": "GHSA",
+          "label": "Low",
+          "note": "primary source for this rule's severity; the three published gradings disagree"
+        },
+        {
+          "source": "NVD",
+          "score": 5.5,
+          "cvssVersion": "3.1",
+          "vector": "AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N",
+          "note": "NIST; NVD explicitly flags a scoring discrepancy with the CNA"
+        },
+        {
+          "source": "CNA (GitHub)",
+          "score": 8.4,
+          "cvssVersion": "3.1",
+          "vector": "S:C/C:H/I:H"
+        }
+      ],
+      "cwe": ["CWE-522", "CWE-200"],
+      "packages": [
+        {
+          "ecosystem": "npm",
+          "name": "@tauri-apps/cli",
+          "stableRanges": [">=1.0.0 <1.5.6"],
+          "prereleaseRanges": [">=2.0.0-alpha.0 <2.0.0-alpha.16"],
+          "patched": ["1.5.6", "2.0.0-alpha.16"]
+        },
+        {
+          "ecosystem": "cargo",
+          "name": "tauri-cli",
+          "stableRanges": [">=1.0.0 <1.5.6"],
+          "prereleaseRanges": [">=2.0.0-alpha.0 <2.0.0-alpha.16"],
+          "patched": ["1.5.6", "2.0.0-alpha.16"]
+        }
+      ],
+      "exemptions": [
+        {
+          "description": "Frameworks other than Vite are not affected.",
+          "verify": "If the project does not build with Vite, this advisory does not apply.",
+          "staticallyCheckable": true
+        },
+        {
+          "description": "An envPrefix of only ['VITE_'] is not affected.",
+          "verify": "Check envPrefix in vite.config.*; if it does not include 'TAURI_', this advisory does not apply.",
+          "staticallyCheckable": true
+        },
+        {
+          "description": "Default production builds do not embed the key. Leakage requires a debug build in which the frontend references the variable directly.",
+          "verify": "Confirm against the real bundle: grep -r \"TAURI_PRIVATE_KEY\" dist/",
+          "staticallyCheckable": false
+        }
+      ],
+      "suggestedConfidence": "heuristic",
+      "references": [
+        "https://github.com/tauri-apps/tauri/security/advisories/GHSA-2rcp-jvr4-r259",
+        "https://nvd.nist.gov/vuln/detail/CVE-2023-46115"
+      ]
+    },
+    {
+      "id": "GHSA-wmff-grcw-jcfm",
+      "aliases": ["CVE-2023-34460"],
+      "summary": "A regression let the filesystem scope check pass for dotfiles that should have been denied.",
+      "severity": "medium",
+      "severitySources": [
+        { "source": "GHSA", "label": "Moderate" },
+        {
+          "source": "GHSA",
+          "score": 4.8,
+          "cvssVersion": "3.1",
+          "vector": "AV:A/AC:L/PR:H/UI:N/S:C/C:L/I:L/A:N"
+        }
+      ],
+      "cwe": ["CWE-285"],
+      "packages": [
+        {
+          "ecosystem": "cargo",
+          "name": "tauri",
+          "stableRanges": ["1.4.0"],
+          "patched": ["1.4.1"]
+        }
+      ],
+      "exemptions": [
+        {
+          "description": "Only affects fs endpoints configured with a wildcard scope.",
+          "verify": "Check whether your fs allowlist scope contains a wildcard. Without one, this does not apply.",
+          "staticallyCheckable": true
+        },
+        {
+          "description": "macOS and Linux only.",
+          "verify": "If you ship only for Windows, this does not apply.",
+          "staticallyCheckable": false
+        }
+      ],
+      "platforms": ["macos", "linux"],
+      "suggestedConfidence": "heuristic",
+      "references": [
+        "https://github.com/tauri-apps/tauri/security/advisories/GHSA-wmff-grcw-jcfm"
+      ]
+    },
+    {
+      "id": "GHSA-4wm2-cwcf-wwvp",
+      "aliases": ["CVE-2023-31134"],
+      "summary": "An open redirect can expose the IPC bridge to an attacker-chosen origin.",
+      "severity": "medium",
+      "severitySources": [
+        { "source": "GHSA", "label": "Moderate" },
+        {
+          "source": "GHSA",
+          "score": 4.8,
+          "cvssVersion": "3.1",
+          "vector": "AV:A/AC:L/PR:L/UI:R/S:C/C:L/I:L/A:N"
+        }
+      ],
+      "packages": [
+        {
+          "ecosystem": "cargo",
+          "name": "tauri",
+          "stableRanges": [">=1.0.0 <1.0.9", ">=1.1.0 <1.1.4", ">=1.2.0 <1.2.5"],
+          "patched": ["1.0.9", "1.1.4", "1.2.5", "1.3.0"]
+        }
+      ],
+      "exemptions": [
+        {
+          "description": "Only affects applications that implement redirection to arbitrary URLs.",
+          "verify": "If your app never navigates to a URL derived from untrusted input, this does not apply. Workaround: restrict redirect inputs.",
+          "staticallyCheckable": false
+        }
+      ],
+      "suggestedConfidence": "heuristic",
+      "references": [
+        "https://github.com/tauri-apps/tauri/security/advisories/GHSA-4wm2-cwcf-wwvp"
+      ]
+    },
+    {
+      "id": "GHSA-6mv3-wm7j-h4w5",
+      "aliases": ["CVE-2022-46171"],
+      "summary": "Overly permissive filesystem glob scopes could expose dotfiles.",
+      "severity": "medium",
+      "severitySources": [
+        { "source": "GHSA", "label": "Moderate" },
+        {
+          "source": "GHSA",
+          "cvssVersion": "3.1",
+          "vector": "AV:A/AC:L/PR:L/UI:N/S:C/C:H/I:N/A:N",
+          "note": "GHSA publishes a vector without a numeric score for this advisory"
+        }
+      ],
+      "cwe": ["CWE-22"],
+      "packages": [
+        {
+          "ecosystem": "cargo",
+          "name": "tauri",
+          "stableRanges": [">=1.0.0 <1.0.8", ">=1.1.0 <1.1.3", ">=1.2.0 <1.2.3"],
+          "prereleaseRanges": [">=2.0.0-alpha.0 <2.0.0-alpha.2"],
+          "patched": ["1.0.8", "1.1.3", "1.2.3", "2.0.0-alpha.2"]
+        }
+      ],
+      "exemptions": [
+        {
+          "description": "Only scopes containing a wildcard (*, ?, [...]) are affected. A ** scope is not.",
+          "verify": "Check your fs scope entries for single-wildcard patterns.",
+          "staticallyCheckable": true
+        }
+      ],
+      "suggestedConfidence": "heuristic",
+      "references": [
+        "https://github.com/tauri-apps/tauri/security/advisories/GHSA-6mv3-wm7j-h4w5"
+      ]
+    },
+    {
+      "id": "GHSA-q9wv-22m9-vhqh",
+      "aliases": ["RUSTSEC-2022-0091"],
+      "summary": "The filesystem scope could be partially bypassed.",
+      "severity": "low",
+      "severitySources": [
+        { "source": "GHSA", "label": "Low" },
+        {
+          "source": "RustSec",
+          "score": 2.3,
+          "cvssVersion": "3.1",
+          "vector": "AV:L/AC:H/PR:H/UI:R/S:C/C:L/I:N/A:N"
+        }
+      ],
+      "packages": [
+        {
+          "ecosystem": "cargo",
+          "name": "tauri",
+          "stableRanges": ["<1.0.7", ">=1.1.0 <1.1.2"],
+          "patched": ["1.0.7", "1.1.2"]
+        }
+      ],
+      "exemptions": [
+        {
+          "description": "Only affects flows using glob characters via file dialogs or drag-and-drop.",
+          "verify": "If your app does not accept paths from a file dialog or drag-and-drop, this does not apply.",
+          "staticallyCheckable": false
+        }
+      ],
+      "suggestedConfidence": "heuristic",
+      "references": [
+        "https://rustsec.org/advisories/RUSTSEC-2022-0091.html"
+      ]
+    },
+    {
+      "id": "GHSA-28m8-9j7v-x499",
+      "summary": "readDir could follow symbolic links out of the permitted scope. The published affected range is imprecise upstream (stated as the 1.0.x line up to 1.0.6); the range below reflects that imprecision.",
+      "severity": "low",
+      "severitySources": [
+        {
+          "source": "GHSA",
+          "label": "Low",
+          "note": "no CVSS score published for this advisory"
+        }
+      ],
+      "packages": [
+        {
+          "ecosystem": "cargo",
+          "name": "tauri",
+          "stableRanges": ["<1.0.6"],
+          "patched": ["1.0.6"]
+        }
+      ],
+      "exemptions": [
+        {
+          "description": "Only affects applications with the readDir endpoint enabled.",
+          "verify": "Check whether readDir is enabled in your fs allowlist.",
+          "staticallyCheckable": true
+        }
+      ],
+      "suggestedConfidence": "heuristic",
+      "references": [
+        "https://github.com/tauri-apps/tauri/security/advisories/GHSA-28m8-9j7v-x499"
+      ]
+    }
+  ]
+}

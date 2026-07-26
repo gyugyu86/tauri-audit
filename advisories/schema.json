@@ -1,0 +1,128 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/gyugyu86/tauri-audit/advisories/schema.json",
+  "title": "tauri-audit advisory database",
+  "description": "Vulnerability data for Tauri and its plugins, transcribed from GitHub Security Advisories, NVD, OSV and RustSec. Mirrors the columns of docs/DESIGN.md table (B).",
+  "type": "object",
+  "required": ["updated", "advisories"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "updated": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "description": "Date this file was last reconciled with upstream sources."
+    },
+    "advisories": { "type": "array", "items": { "$ref": "#/definitions/advisory" } }
+  },
+  "definitions": {
+    "advisory": {
+      "type": "object",
+      "required": ["id", "summary", "severity", "severitySources", "packages", "suggestedConfidence", "references"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Primary identifier, normally the GHSA ID."
+        },
+        "aliases": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "CVE / RUSTSEC identifiers for the same issue."
+        },
+        "summary": { "type": "string" },
+        "severity": {
+          "enum": ["critical", "high", "medium", "low", "info"],
+          "description": "Rule severity. Derived from the GHSA label, which is the primary source: Tauri is the CNA for its own advisories and understands the real impact best. Disagreeing scores are not averaged - they are all listed in severitySources and quoted in the finding."
+        },
+        "severitySources": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/severitySource" },
+          "description": "Every published grading, with its origin. Scores for one CVE routinely disagree (CVE-2023-46115 is GHSA Low, NVD 5.5 Medium, CNA 8.4 High), so quoting a single number would misrepresent the risk."
+        },
+        "cwe": { "type": "array", "items": { "type": "string" } },
+        "packages": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/affectedPackage" }
+        },
+        "exemptions": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/exemption" },
+          "description": "Conditions under which an affected version is NOT vulnerable. Presence of any exemption that cannot be cross-checked statically forces suggestedConfidence to heuristic."
+        },
+        "platforms": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Platforms the issue applies to. Absent means all. tauri-audit cannot tell which platform a project ships to, so this is reported, never used to filter."
+        },
+        "suggestedConfidence": {
+          "enum": ["high", "heuristic"],
+          "description": "Confidence a rule should use for a version match. Must be heuristic whenever exemptions exist, because a version match alone cannot prove the project is affected."
+        },
+        "deprecationNote": {
+          "type": "string",
+          "description": "Migration advice to include in the finding, e.g. shell open being deprecated in favour of tauri-plugin-opener."
+        },
+        "references": { "type": "array", "minItems": 1, "items": { "type": "string", "format": "uri" } }
+      }
+    },
+    "severitySource": {
+      "type": "object",
+      "required": ["source"],
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "type": "string",
+          "description": "Who published this grading, e.g. GHSA, NVD, CNA, RustSec, OSV."
+        },
+        "label": { "type": "string", "description": "Qualitative label as published." },
+        "score": { "type": "number", "minimum": 0, "maximum": 10 },
+        "cvssVersion": { "type": "string" },
+        "vector": { "type": "string" },
+        "note": { "type": "string" }
+      }
+    },
+    "affectedPackage": {
+      "type": "object",
+      "required": ["ecosystem", "name"],
+      "additionalProperties": false,
+      "properties": {
+        "ecosystem": {
+          "enum": ["npm", "cargo"],
+          "description": "npm and cargo are matched separately and never share ranges: the same advisory frequently covers different version lines in each."
+        },
+        "name": { "type": "string" },
+        "stableRanges": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "semver ranges matched against stable versions only, using the default satisfies() semantics that exclude prereleases."
+        },
+        "prereleaseRanges": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "semver ranges matched against prerelease versions only, with includePrerelease. Kept separate from stableRanges so a stable 2.x can never match a beta-only advisory - the exact confusion that would make CVE-2024-35222 fire on every v2 app."
+        },
+        "patched": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Fixed versions, for the remediation message."
+        }
+      }
+    },
+    "exemption": {
+      "type": "object",
+      "required": ["description", "verify", "staticallyCheckable"],
+      "additionalProperties": false,
+      "properties": {
+        "description": { "type": "string", "description": "The 'not affected if...' condition, as published." },
+        "verify": { "type": "string", "description": "Concrete steps the user can take to confirm, included verbatim in the finding." },
+        "staticallyCheckable": {
+          "type": "boolean",
+          "description": "Whether tauri-audit can evaluate this condition from config alone. False means a version match can never be more than a suspicion."
+        }
+      }
+    }
+  }
+}
