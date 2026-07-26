@@ -23,14 +23,32 @@ The realistic risks in a tool like this one are not memory corruption. They are:
 - **Path escape.** Reading or writing outside the directory it was pointed at, for example
   through a crafted symlink or path in a scanned file.
 - **A crash on hostile input**, since this runs in CI where a crash blocks a pipeline.
-- **A wrong verdict that hides a real problem** — a config that makes the tool report
-  success while an issue goes unreported. Given what this tool is for, a silent false
-  negative is a security bug, not a quality one.
+- **A silent failure inside what the tool claims to cover.** If a rule that should have
+  fired did not, and the reason is a defect rather than a documented limit, that is a
+  security bug here rather than a quality one — the whole value of the tool is that its
+  silence means something. Concretely: a rule with inverted polarity, an exemption check
+  that wrongly suppresses a finding, a config that fails to parse while the run still
+  reports success, or any path where analysis does not happen and the exit code does not
+  say so.
 
 ## What does not
 
-- **Findings you disagree with.** A false positive or a missed detection is a normal bug —
-  please open a regular issue. It helps enormously to include the configuration.
+**Anything outside what the tool claims to analyze.** This matters more here than it
+usually would, because tauri-audit accepts false negatives by design — it would rather miss
+a finding than invent one. It ships eight configuration rules, has no dataflow analysis at
+all, and does not read Rust or JavaScript source yet. So "it did not detect X" is only a
+security report when X is inside the documented scope; otherwise it is a feature request,
+and a welcome one. [Honest limitations](README.md#honest-limitations) and the
+[roadmap](README.md#roadmap) are the boundary, and they are kept current deliberately so
+this distinction stays checkable rather than being a matter of opinion.
+
+An unbounded promise is one nobody can keep, and a promise broken later costs more trust
+than a narrow one made honestly at the start.
+
+Also not security reports:
+
+- **Findings you disagree with.** A false positive is a normal bug — please open a regular
+  issue. It helps enormously to include the configuration.
 - **Vulnerabilities in the applications in `tests/corpus/`.** Those are third-party
   configuration files vendored as test data. Report those to the projects themselves.
 - **Vulnerabilities in Tauri.** Report those to
