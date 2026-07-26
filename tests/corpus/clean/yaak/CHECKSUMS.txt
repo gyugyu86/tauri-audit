@@ -1,0 +1,8 @@
+# sha256 of every vendored file, so local modification is detectable offline.
+# Regenerate with: node scripts/corpus-checksums.mjs --write
+fdee06c0f7db77de63437f0e4c59e0ac09874f06710f7da6bca131f41347f7cb  crates-tauri/yaak-app-client/Cargo.toml
+6863f8a7a0cea17c47214148bb8baf010de6e9c0cc59edc4a34364b912483197  crates-tauri/yaak-app-client/capabilities/default.json
+fe9bc232800dcca8f021c3d9da754913eb44ac7554d6aab864e9cadcfea666ee  crates-tauri/yaak-app-client/tauri.conf.json
+6705b7b40e5ccb4b9d85d1e3327395050607affa61e7665be20d85a32548e550  crates-tauri/yaak-app-proxy/Cargo.toml
+376ef10fbe9fbc8b4f4621cfd6e9f7608d6ab303b7252d150fb75a6fcb1c420d  crates-tauri/yaak-app-proxy/capabilities/default.json
+3a8f1a9721eef0bbc06b413aa880c85406e22997f98d3dc5d43df4ec4a35f9c2  crates-tauri/yaak-app-proxy/tauri.conf.json

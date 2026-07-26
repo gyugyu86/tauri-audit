@@ -9,6 +9,7 @@ import { buildProjectContext } from '../../src/core/projectContext.js';
 import { runRules } from '../../src/core/ruleEngine.js';
 import { ALL_RULES } from '../../src/core/rules/index.js';
 import type { Finding } from '../../src/core/types.js';
+import { corpusApps, verifyApp } from '../../scripts/corpus-checksums.mjs';
 
 const CORPUS = path.join(path.dirname(fileURLToPath(import.meta.url)));
 const CLEAN = path.join(CORPUS, 'clean');
@@ -60,12 +61,19 @@ describe('clean corpus produces no gating findings', () => {
     expect(gating, `unexpected gating findings in clean app "${app}"`).toEqual([]);
   });
 
-  it.each(cleanApps)('%s is fully analyzable', (app) => {
+  it.each(cleanApps)('%s reports its analysis coverage', (app) => {
     // A clean result is only meaningful if the analysis actually covered the
-    // project. An app that failed to parse would produce zero findings for the
+    // project — an app that failed to parse would produce zero findings for the
     // wrong reason and pass the assertion above by accident.
+    //
+    // Coverage is snapshotted rather than asserted empty, because one honest
+    // gap exists and pretending otherwise would be worse than recording it:
+    // Tauri's own v1 examples carry a tauri.conf.json and no Cargo.toml, so
+    // their Rust dependencies genuinely cannot be checked. Using the snapshot
+    // rather than an allowlist means a NEW gap shows up as a reviewable diff
+    // instead of being absorbed by a list someone can quietly extend.
     const { incomplete } = scan(path.join(CLEAN, app));
-    expect(incomplete, `analysis did not fully cover "${app}"`).toEqual([]);
+    expect(incomplete.map((reason) => reason.replace(/^[^:]+: /, ''))).toMatchSnapshot();
   });
 });
 
@@ -190,4 +198,21 @@ describe('the corpus is never published as findings', () => {
       );
     }
   });
+});
+
+describe('the corpus is unmodified', () => {
+  // What matters about vendored third-party configuration is not which words it
+  // contains — that is upstream's business and nothing to do with this project —
+  // but that nobody here has edited it. Its whole value is having been written
+  // by people who never heard of this tool, and one well-meaning edit to make a
+  // test pass would silently turn it into something we authored.
+  //
+  // This runs offline against recorded checksums. `npm run verify:corpus --
+  // --upstream` re-fetches from the recorded commit for the stronger check.
+  it.each(corpusApps().map((app) => [`${app.group}/${app.name}`, app] as const))(
+    '%s matches its recorded checksums',
+    (_label, app) => {
+      expect(verifyApp(app)).toEqual([]);
+    },
+  );
 });

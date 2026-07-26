@@ -37,6 +37,14 @@ const VALID_V2 = JSON.stringify({
   app: { security: { csp: "default-src 'self'" } },
 });
 
+const MINIMAL_CARGO = `[package]
+name = "demo"
+version = "0.1.0"
+
+[dependencies]
+tauri = "2"
+`;
+
 /** The same composition the CLI performs, without commander in the way. */
 function audit(options: { strict?: boolean; fail?: boolean } = {}): {
   exitCode: number;
@@ -81,6 +89,11 @@ describe('a project with a broken config is never reported as clean', () => {
 
   it('exits 0 for a valid config with nothing to report', () => {
     write('src-tauri/tauri.conf.json', VALID_V2);
+    // A Tauri application is a Rust crate, so a directory holding only a
+    // tauri.conf.json is not one — it cannot build. Without a manifest the run
+    // correctly reports that no dependency was checked, which is a different
+    // outcome from the one under test here.
+    write('src-tauri/Cargo.toml', MINIMAL_CARGO);
 
     const { exitCode, incomplete } = audit();
 
@@ -156,6 +169,7 @@ describe.skipIf(!BUILT)('built CLI binary', () => {
 
   it('exits 0 on a valid config', () => {
     write('src-tauri/tauri.conf.json', VALID_V2);
+    write('src-tauri/Cargo.toml', MINIMAL_CARGO);
     expect(run([root]).status).toBe(0);
   });
 

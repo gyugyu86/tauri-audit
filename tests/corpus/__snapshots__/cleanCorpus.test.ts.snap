@@ -1,5 +1,33 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`clean corpus produces no gating findings > ecopaste reports its analysis coverage 1`] = `[]`;
+
+exports[`clean corpus produces no gating findings > grovr reports its analysis coverage 1`] = `[]`;
+
+exports[`clean corpus produces no gating findings > hatickets reports its analysis coverage 1`] = `[]`;
+
+exports[`clean corpus produces no gating findings > paperling reports its analysis coverage 1`] = `[]`;
+
+exports[`clean corpus produces no gating findings > pomotroid reports its analysis coverage 1`] = `[]`;
+
+exports[`clean corpus produces no gating findings > rclone-ui reports its analysis coverage 1`] = `[]`;
+
+exports[`clean corpus produces no gating findings > surrealist reports its analysis coverage 1`] = `[]`;
+
+exports[`clean corpus produces no gating findings > tauri-helloworld-v1 reports its analysis coverage 1`] = `
+[
+  "a Tauri configuration was analyzed but no Cargo.toml or package.json was found, so no dependency was checked against known vulnerabilities. If the manifest lives outside the scanned directory, scan from the directory that contains it",
+]
+`;
+
+exports[`clean corpus produces no gating findings > tauri-isolation-v1 reports its analysis coverage 1`] = `
+[
+  "a Tauri configuration was analyzed but no Cargo.toml or package.json was found, so no dependency was checked against known vulnerabilities. If the manifest lives outside the scanned directory, scan from the directory that contains it",
+]
+`;
+
+exports[`clean corpus produces no gating findings > yaak reports its analysis coverage 1`] = `[]`;
+
 exports[`corpus findings snapshot > clean/ecopaste 1`] = `
 [
   "TA-CONF-001 medium/heuristic src-tauri/tauri.conf.json:13",

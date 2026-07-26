@@ -1,7 +1,7 @@
 {
   "name": "tauri-audit",
   "version": "0.1.0",
-  "description": "Static security analyzer for Tauri v2/v1 apps — separates severity from confidence, keeps high-confidence false positives at zero.",
+  "description": "Static security analyzer for Tauri v2/v1 apps \u2014 separates severity from confidence, keeps high-confidence false positives at zero.",
   "type": "module",
   "main": "dist/core/index.js",
   "types": "dist/core/index.d.ts",
@@ -29,7 +29,9 @@
     "test": "vitest run",
     "lint": "eslint .",
     "dev": "tsx src/cli/index.ts",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "verify:corpus": "node scripts/corpus-checksums.mjs",
+    "verify:traces": "bash scripts/check-authorship-traces.sh"
   },
   "keywords": [
     "tauri",

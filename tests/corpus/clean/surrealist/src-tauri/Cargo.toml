@@ -1,0 +1,44 @@
+[package]
+name = "surrealist"
+version = "0.0.0"
+description = "Powerful graphical SurrealDB query playground and database explorer for Browser and Desktop"
+authors = ["SurrealDB"]
+license = "MIT"
+repository = "https://github.com/surrealdb/surrealist"
+edition = "2021"
+publish = false
+
+[dependencies]
+tauri = { version = "2.4.0", features = ["devtools"] }
+tauri-plugin-fs = "2.2.0"
+tauri-plugin-os = "2.2.1"
+tauri-plugin-log = "2.3.1"
+tauri-plugin-shell = "2.2.1"
+tauri-plugin-dialog = "2.2.0"
+tauri-plugin-process = "2.2.0"
+tauri-plugin-updater = "2.6.1"
+tauri-plugin-deep-link = "2.2.0"
+tauri-plugin-localhost = "2.2.0"
+tauri-plugin-single-instance = "2.2.2"
+portpicker = "0.1"
+serde_json = "1.0"
+dirs = "5.0.1"
+serde = { version = "1.0", features = ["derive"] }
+time = { version = "0.3", default-features = false }
+log = "^0.4"
+url = "2"
+showfile = "0.1.1"
+reqwest = "0.12"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+cocoa = "0.26.1"
+objc = "0.2.7"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+openssl = { version = "0.10.72", features = ["vendored"] }
+
+[lints.rust]
+unexpected_cfgs = { level = "allow", check-cfg = ['cfg(feature, values("cargo-clippy"))'] }
+
+[build-dependencies]
+tauri-build = { version = "2.1.0" }

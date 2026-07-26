@@ -54,6 +54,16 @@ Two negative results are worth as much as the positive ones. yaak's `fs:scope` o
 correctly does not. KiwiTalk's v1-era `envPrefix` lists `TAURI_PLATFORM`, `TAURI_ARCH` and
 similar, and TA-VITE-001 correctly does not — a substring match on `TAURI_` would have.
 
+### An honest exit 2
+
+`clean/tauri-helloworld-v1` and `clean/tauri-isolation-v1` exit 2, not 0. They carry a
+`tauri.conf.json` and no `Cargo.toml` — upstream keeps their Rust manifests elsewhere — so
+the dependency rules examined nothing, and the run says so instead of reporting a clean
+result. That is the intended behaviour, and their coverage snapshots record it.
+
+They stay in `clean/` because the classification is about findings, not about how completely
+the analysis could run: neither produces a gating finding, which is what `clean/` asserts.
+
 ### Gaps that remain
 
 No real-world material was found for:

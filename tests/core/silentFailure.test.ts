@@ -269,6 +269,31 @@ describe('unreadable inputs stay visible', () => {
   });
 });
 
+describe('dependency manifests', () => {
+  it('degrades when a Tauri config exists but no manifest does', () => {
+    // A Tauri application is a Rust crate, so a config with no Cargo.toml and no
+    // package.json anywhere means the dependency rules examined nothing. Before
+    // this was closed the run exited 0 with no findings and no warning, which
+    // reads as "no vulnerable dependencies" when nothing had been looked at.
+    write('src-tauri/tauri.conf.json', VALID_V2);
+
+    const project = buildProjectContext(tmp);
+    expect(project.incomplete.join(' ')).toContain('no dependency was checked');
+  });
+
+  it('warns rather than degrading when only the Rust manifest is missing', () => {
+    // npm dependencies were still checked, so the answer is imprecise rather
+    // than empty. Exit 2 here would fail every project whose Cargo.toml sits
+    // outside the scanned directory.
+    write('src-tauri/tauri.conf.json', VALID_V2);
+    write('package.json', JSON.stringify({ dependencies: {} }));
+
+    const project = buildProjectContext(tmp);
+    expect(project.incomplete).toEqual([]);
+    expect(project.warnings.join(' ')).toContain('no Cargo.toml was found');
+  });
+});
+
 describe('checklist completeness', () => {
   it('covers every layer that can fail into a zero-finding result', () => {
     // Not a functional assertion — a written record of what has been considered,
@@ -286,7 +311,8 @@ describe('checklist completeness', () => {
       'advisories: malformed range skipped',
       'registry: no rules registered',
       'reporters: finding dropped from output',
+      'dependencies: no manifest to check at all',
     ];
-    expect(layers.length).toBeGreaterThanOrEqual(12);
+    expect(layers.length).toBeGreaterThanOrEqual(13);
   });
 });

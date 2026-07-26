@@ -407,6 +407,33 @@ export function buildProjectContext(rootDir: string, options: DiscoveryOptions =
     }
   }
 
+  // A Tauri application is a Rust application, so a placed config with no
+  // dependency manifest anywhere in scope means the dependency rules examined
+  // nothing at all. Reporting that as "no vulnerable dependencies" would be the
+  // same silence this project refuses everywhere else — and it is not
+  // hypothetical: it happens whenever the scan is pointed at a subdirectory
+  // whose manifest lives a level up, and it is true of Tauri's own v1 examples,
+  // which carry a tauri.conf.json and no Cargo.toml of their own.
+  const hasCargoManifest = discovery.files.some((file) => file.kind === 'cargo-manifest');
+  const hasNpmManifest = discovery.files.some((file) => file.kind === 'package-manifest');
+  if (project.configs.length > 0 && !hasCargoManifest && !hasNpmManifest) {
+    degrade(
+      'a Tauri configuration was analyzed but no Cargo.toml or package.json was found, so no ' +
+        'dependency was checked against known vulnerabilities. If the manifest lives outside ' +
+        'the scanned directory, scan from the directory that contains it',
+    );
+  } else if (project.configs.length > 0 && !hasCargoManifest) {
+    // A warning rather than a coverage loss: npm dependencies were checked, so
+    // "no vulnerable dependency" is imprecise here rather than empty. Only the
+    // case where *nothing* was checked earns exit 2 — a partial answer is still
+    // an answer, and treating it otherwise would fail every project whose Rust
+    // manifest sits outside the scanned directory.
+    project.warnings.push(
+      'no Cargo.toml was found, so no Rust dependency was checked against known ' +
+        'vulnerabilities. npm dependencies were checked',
+    );
+  }
+
   // Losing the advisory database silently would be the worst kind of clean
   // result: every dependency rule would return nothing, and the run would exit 0
   // reporting no known-vulnerable dependencies when in fact none were checked.
