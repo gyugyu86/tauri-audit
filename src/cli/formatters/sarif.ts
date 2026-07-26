@@ -21,40 +21,63 @@ export interface SarifGrading {
  * The single place where a finding's severity and confidence become GitHub's
  * grading. Every SARIF field that depends on either goes through here.
  *
- * `security-severity` folds confidence into the score by subtracting a penalty,
- * so a certain finding always outranks an uncertain one of the same severity in
- * GitHub's ordering. `level` currently derives from severity alone.
+ * The goal is narrow: a heuristic finding must never compete on equal footing
+ * with a confident one. Two mechanisms carry that, because GitHub uses two.
  *
- * PROVISIONAL: the penalty value and the choice to leave `level` untouched are
- * unverified against how GitHub actually renders them. S7's self-scan checks the
- * real code-scanning UI, and this function is deliberately the only thing that
- * would need to change — including if heuristics should instead drop to
- * `level: 'note'`.
+ * `security-severity` is the numeric key GitHub bands into its own labels.
+ * Documented thresholds: over 9.0 is critical, 7.0-8.9 high, 4.0-6.9 medium,
+ * 0.1-3.9 low, and 0.0 or out of range means no security severity at all. Two
+ * consequences shaped the table below. A critical finding scores 9.5 rather than
+ * 9.0, because 9.0 is not "over 9.0" and would badge one level down. And every
+ * value is distinct, because the previous flat -2 penalty made a heuristic
+ * critical (7.0) score identically to a confident high (7.0) — the exact tie
+ * this grading exists to prevent.
  *
- * Note that this grading is independent of the CI gate. SARIF shows everything,
- * graded; `core/gate.ts` decides pass or fail. Conflating them would mean either
- * hiding findings or failing builds on uncertainty.
+ * `level` is the badge shown against each alert, and it is what a reader
+ * actually notices. Severity sets it and a heuristic finding drops one step, so
+ * uncertainty is visible without reading a number.
+ *
+ * This grading is independent of the CI gate. SARIF shows everything, graded;
+ * `core/gate.ts` decides pass or fail. Conflating them would mean either hiding
+ * findings or failing builds on uncertainty.
+ *
+ * Still unverified: how these render in the code-scanning UI. The thresholds
+ * above are documented, so the banding is not in doubt; what a screenshot would
+ * settle is whether the demoted `level` reads as intended next to the badge
+ * GitHub derives from the number. Any adjustment stays inside this function.
  */
-const BASE_SCORE: Readonly<Record<Severity, number>> = {
-  critical: 9,
-  high: 7,
-  medium: 5,
-  low: 3,
-  info: 1,
+const SCORE: Readonly<Record<Severity, Readonly<Record<Confidence, number>>>> = {
+  // Every value sits strictly inside (0.0, 10.0], and for each severity the
+  // heuristic score is strictly below the confident one. `sarif.test.ts` asserts
+  // both, so a future edit cannot silently reintroduce a tie.
+  critical: { high: 9.5, heuristic: 7.5 },
+  high: { high: 8.0, heuristic: 5.0 },
+  medium: { high: 6.0, heuristic: 3.5 },
+  low: { high: 2.5, heuristic: 1.5 },
+  info: { high: 1.0, heuristic: 0.5 },
 };
 
-const HEURISTIC_PENALTY = 2;
+const LEVEL_BY_SEVERITY: Readonly<Record<Severity, SarifLevel>> = {
+  critical: 'error',
+  high: 'error',
+  medium: 'warning',
+  low: 'note',
+  info: 'note',
+};
 
-function levelFor(severity: Severity): SarifLevel {
-  if (severity === 'critical' || severity === 'high') return 'error';
-  if (severity === 'medium') return 'warning';
-  return 'note';
-}
+/** One step quieter. `note` is already the quietest level SARIF defines. */
+const DEMOTED: Readonly<Record<SarifLevel, SarifLevel>> = {
+  error: 'warning',
+  warning: 'note',
+  note: 'note',
+};
 
 export function sarifGrading(severity: Severity, confidence: Confidence): SarifGrading {
-  const base = BASE_SCORE[severity];
-  const score = confidence === 'heuristic' ? Math.max(0.5, base - HEURISTIC_PENALTY) : base;
-  return { level: levelFor(severity), securitySeverity: score.toFixed(1) };
+  const base = LEVEL_BY_SEVERITY[severity];
+  return {
+    level: confidence === 'heuristic' ? DEMOTED[base] : base,
+    securitySeverity: SCORE[severity][confidence].toFixed(1),
+  };
 }
 
 /**
@@ -102,24 +125,54 @@ export function formatSarif(
   const ruleIndex = new Map<string, number>();
   const rules: unknown[] = [];
 
+  /**
+   * The strongest grading this rule actually produced in this run.
+   *
+   * `security-severity` is a rule-level property in SARIF while `level` is
+   * per-result, and GitHub bands its displayed severity from the rule-level
+   * number. Grading the descriptor as if every finding were certain therefore
+   * badged a heuristic finding at full strength — TA-DEP-001 is heuristic by
+   * construction, and its alerts were banding `high` while their own `level`
+   * correctly said `warning`. The descriptor now reflects the worst grading the
+   * rule genuinely emitted, so a rule that only ever reports heuristically is
+   * never presented as though it had not.
+   */
+  const strongest = new Map<string, { severity: Severity; confidence: Confidence }>();
+  for (const finding of ordered) {
+    const current = strongest.get(finding.ruleId);
+    const score = Number(sarifGrading(finding.severity, finding.confidence).securitySeverity);
+    if (
+      current === undefined ||
+      score > Number(sarifGrading(current.severity, current.confidence).securitySeverity)
+    ) {
+      strongest.set(finding.ruleId, {
+        severity: finding.severity,
+        confidence: finding.confidence,
+      });
+    }
+  }
+
   for (const finding of ordered) {
     if (ruleIndex.has(finding.ruleId)) continue;
     ruleIndex.set(finding.ruleId, rules.length);
 
+    const worst = strongest.get(finding.ruleId) ?? {
+      severity: finding.severity,
+      confidence: finding.confidence,
+    };
+    const grading = sarifGrading(worst.severity, worst.confidence);
     const references = finding.references ?? [];
+
     rules.push({
       id: finding.ruleId,
       name: finding.ruleId,
       shortDescription: { text: finding.target },
       fullDescription: { text: finding.whyDangerous },
       help: { text: finding.recommendation },
-      // A rule descriptor is shared by every finding of that rule, so it is
-      // graded as if certain; per-result grading below carries the real
-      // confidence.
-      defaultConfiguration: { level: sarifGrading(finding.severity, 'high').level },
+      defaultConfiguration: { level: grading.level },
       ...(references[0] === undefined ? {} : { helpUri: references[0] }),
       properties: {
-        'security-severity': sarifGrading(finding.severity, 'high').securitySeverity,
+        'security-severity': grading.securitySeverity,
         ...(references.length > 0 ? { references } : {}),
       },
     });

@@ -1,0 +1,8 @@
+[package]
+name = "demo-app"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tauri = "2"
+tauri-plugin-shell = "2.2.0"

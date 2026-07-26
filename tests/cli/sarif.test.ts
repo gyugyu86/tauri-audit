@@ -136,11 +136,24 @@ describe('sarifGrading — the single grading function', () => {
     expect(sarifGrading('info', 'high').level).toBe('note');
   });
 
-  it('subtracts 2 from security-severity for heuristic findings', () => {
-    expect(sarifGrading('critical', 'high').securitySeverity).toBe('9.0');
-    expect(sarifGrading('critical', 'heuristic').securitySeverity).toBe('7.0');
-    expect(sarifGrading('high', 'high').securitySeverity).toBe('7.0');
-    expect(sarifGrading('high', 'heuristic').securitySeverity).toBe('5.0');
+  it('lands each grading in the intended GitHub band', () => {
+    // Documented banding: over 9.0 critical, 7.0-8.9 high, 4.0-6.9 medium,
+    // 0.1-3.9 low. A heuristic finding sits at least one band below the
+    // confident finding of the same severity.
+    const band = (value: string): string => {
+      const score = Number(value);
+      if (score > 9) return 'critical';
+      if (score >= 7) return 'high';
+      if (score >= 4) return 'medium';
+      return 'low';
+    };
+
+    expect(band(sarifGrading('critical', 'high').securitySeverity)).toBe('critical');
+    expect(band(sarifGrading('critical', 'heuristic').securitySeverity)).toBe('high');
+    expect(band(sarifGrading('high', 'high').securitySeverity)).toBe('high');
+    expect(band(sarifGrading('high', 'heuristic').securitySeverity)).toBe('medium');
+    expect(band(sarifGrading('medium', 'high').securitySeverity)).toBe('medium');
+    expect(band(sarifGrading('medium', 'heuristic').securitySeverity)).toBe('low');
   });
 
   it('keeps a certain finding ranked above an uncertain one of the same severity', () => {
@@ -192,5 +205,110 @@ describe('result shape', () => {
     for (const result of document.runs[0]?.results ?? []) {
       expect(rules[result.ruleIndex]?.id).toBe(result.ruleId);
     }
+  });
+});
+
+describe('sarifGrading keeps uncertainty subordinate', () => {
+  const SEVERITIES = ['critical', 'high', 'medium', 'low', 'info'] as const;
+
+  it('emits only values GitHub treats as a security severity', () => {
+    // Documented: 0.0 or out of range means "no security severity", which would
+    // drop the finding out of the banding entirely.
+    for (const severity of SEVERITIES) {
+      for (const confidence of ['high', 'heuristic'] as const) {
+        const score = Number(sarifGrading(severity, confidence).securitySeverity);
+        expect(score, `${severity}/${confidence}`).toBeGreaterThan(0);
+        expect(score, `${severity}/${confidence}`).toBeLessThanOrEqual(10);
+      }
+    }
+  });
+
+  it('scores a heuristic finding strictly below a confident one of the same severity', () => {
+    for (const severity of SEVERITIES) {
+      const confident = Number(sarifGrading(severity, 'high').securitySeverity);
+      const heuristic = Number(sarifGrading(severity, 'heuristic').securitySeverity);
+      expect(heuristic, severity).toBeLessThan(confident);
+    }
+  });
+
+  it('never gives two gradings the same score', () => {
+    // A flat penalty previously made a heuristic critical score exactly what a
+    // confident high scored, so the two were indistinguishable in GitHub's
+    // ordering — the tie this grading exists to prevent.
+    const scores = SEVERITIES.flatMap((severity) =>
+      (['high', 'heuristic'] as const).map(
+        (confidence) => sarifGrading(severity, confidence).securitySeverity,
+      ),
+    );
+    expect(new Set(scores).size).toBe(scores.length);
+  });
+
+  it('puts a confident critical above the documented critical threshold', () => {
+    // "over 9.0 is critical" — 9.0 itself is not over 9.0.
+    expect(Number(sarifGrading('critical', 'high').securitySeverity)).toBeGreaterThan(9);
+  });
+
+  it('demotes the level of a heuristic finding', () => {
+    // The level badge is what a reader notices first, so uncertainty has to show
+    // there and not only in a number.
+    expect(sarifGrading('high', 'high').level).toBe('error');
+    expect(sarifGrading('high', 'heuristic').level).toBe('warning');
+    expect(sarifGrading('medium', 'heuristic').level).toBe('note');
+    // note is already the quietest level SARIF defines.
+    expect(sarifGrading('info', 'heuristic').level).toBe('note');
+  });
+});
+
+describe('rule descriptors reflect the confidence actually emitted', () => {
+  const meta: ReportMeta = {
+    rootDir: '/scan',
+    configsAnalyzed: 1,
+    configsUnplaced: 0,
+    capabilitiesAnalyzed: 0,
+    filesUnparsable: 0,
+    warnings: [],
+  };
+
+  function finding(ruleId: string, severity: Severity, confidence: Confidence): Finding {
+    return {
+      ruleId,
+      severity,
+      confidence,
+      file: '/scan/tauri.conf.json',
+      line: 1,
+      target: `${ruleId} target`,
+      whyDangerous: 'why',
+      recommendation: 'fix',
+    };
+  }
+
+  function ruleScore(findings: Finding[], ruleId: string): number {
+    const parsed = JSON.parse(formatSarif(findings, meta, {})) as {
+      runs: {
+        tool: { driver: { rules: { id: string; properties: { 'security-severity': string } }[] } };
+      }[];
+    };
+    const rule = parsed.runs[0]?.tool.driver.rules.find((entry) => entry.id === ruleId);
+    return Number(rule?.properties['security-severity']);
+  }
+
+  it('does not band a heuristic-only rule as if it were certain', () => {
+    // security-severity is rule-level in SARIF while level is per-result, and
+    // GitHub bands from the rule-level number. Grading the descriptor as if
+    // certain made a heuristic finding badge at full strength while its own
+    // level said otherwise.
+    const heuristicOnly = ruleScore([finding('TA-X-001', 'high', 'heuristic')], 'TA-X-001');
+    const certain = ruleScore([finding('TA-X-001', 'high', 'high')], 'TA-X-001');
+    expect(heuristicOnly).toBeLessThan(certain);
+  });
+
+  it('uses the strongest grading a rule actually produced', () => {
+    // A rule reporting both confidently and heuristically is described by its
+    // confident finding, which is the worst thing it genuinely found.
+    const mixed = ruleScore(
+      [finding('TA-X-002', 'high', 'heuristic'), finding('TA-X-002', 'high', 'high')],
+      'TA-X-002',
+    );
+    expect(mixed).toBe(ruleScore([finding('TA-X-002', 'high', 'high')], 'TA-X-002'));
   });
 });

@@ -1,4 +1,4 @@
-import { readdirSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -155,5 +155,39 @@ describe('rule evidence metadata matches reality', () => {
     // visible, so it cannot quietly drift toward all-synthetic.
     const synthetic = ALL_RULES.filter((rule) => rule.evidence === 'synthetic-only');
     expect(synthetic.length).toBeLessThanOrEqual(ALL_RULES.length);
+  });
+});
+
+describe('the corpus is never published as findings', () => {
+  // tests/corpus/ holds unmodified configuration from real third-party projects.
+  // Their findings are heuristic observations about ordinary design choices —
+  // shipping without a CSP is the Tauri default — so publishing them to this
+  // repository's code-scanning tab would put other people's project names next
+  // to what reads as a vulnerability claim against them.
+  //
+  // The self-scan workflow therefore targets the synthetic sample app. This
+  // asserts it stays that way, because the mistake is easy to make and invisible
+  // until it has already been published.
+  const workflow = readFileSync(
+    path.join(CORPUS, '..', '..', '.github', 'workflows', 'self-scan.yml'),
+    'utf8',
+  );
+
+  it('scans the synthetic sample app', () => {
+    expect(workflow).toContain('tests/fixtures/vulnerable/demo-app');
+  });
+
+  it('never names the corpus as a scan target', () => {
+    const scanCommands = workflow
+      .split('\n')
+      .filter((line) => line.includes('dist/cli/index.js'));
+    expect(scanCommands.length).toBeGreaterThan(0);
+    for (const command of scanCommands) {
+      expect(command, 'a scan command targets the corpus').not.toMatch(/tests\/corpus/);
+      // A bare `.` would sweep the whole repository, corpus included.
+      expect(command, 'a scan command targets the repository root').not.toMatch(
+        /index\.js\s+\.(\s|$)/,
+      );
+    }
   });
 });

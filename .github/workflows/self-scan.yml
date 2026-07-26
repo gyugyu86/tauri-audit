@@ -1,0 +1,64 @@
+name: Self-scan
+
+# Runs tauri-audit against the deliberately insecure sample app and publishes the
+# SARIF, so the code-scanning rendering can be checked against a known mixture of
+# severities and confidences.
+#
+# The scan target is `tests/fixtures/vulnerable/demo-app` and must stay that way.
+# Scanning the repository root would also pick up `tests/corpus/`, which holds
+# unmodified configuration from real third-party projects. Those produce
+# heuristic findings about ordinary design choices — shipping without a CSP is
+# the Tauri default — and publishing them here would put other people's project
+# names in this repository's Security tab looking like vulnerability claims
+# against them. They are regression fixtures, not audit subjects.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  self-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24.x'
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: Scan the sample app
+        run: |
+          set +e
+          node dist/cli/index.js tests/fixtures/vulnerable/demo-app --sarif > self-scan.sarif
+          echo "exit-code=$?" >> "$GITHUB_OUTPUT"
+          # Findings are the point of this workflow, so a non-zero exit is the
+          # expected outcome and must not fail the job.
+          exit 0
+        id: scan
+
+      - name: Show what will be uploaded
+        run: |
+          echo "exit code: ${{ steps.scan.outputs.exit-code }} (1 is expected — the sample is insecure by design)"
+          node -e "
+            const s = require('./self-scan.sarif').runs[0];
+            const rules = Object.fromEntries(s.tool.driver.rules.map(r => [r.id, r]));
+            for (const r of s.results) {
+              const p = rules[r.ruleId].properties['security-severity'];
+              console.log(\`\${r.ruleId}  level=\${r.level}  security-severity=\${p}  \${r.properties.confidence}\`);
+            }
+          "
+
+      - uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: self-scan.sarif
+          category: tauri-audit-self-scan

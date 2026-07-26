@@ -1,0 +1,11 @@
+{
+  "identifier": "default",
+  "description": "Deliberately over-broad, for demonstration only.",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "shell:allow-open",
+    { "identifier": "fs:allow-read", "allow": ["$HOME/**"] },
+    { "identifier": "fs:allow-write", "allow": ["$CONFIG/**"] }
+  ]
+}

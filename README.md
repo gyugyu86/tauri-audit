@@ -5,8 +5,10 @@
 Static security analyzer for [Tauri](https://tauri.app) v2 and v1 apps. It parses your
 configuration and source **without running the app**, so it is fast, safe, and CI-friendly.
 
-> **Status: pre-release (0.1.0).** Scaffolding is in place; rules are landing incrementally.
-> See [Roadmap](#roadmap).
+> **Status: pre-release (0.1.0).** Eight rules, landing incrementally. See [Roadmap](#roadmap).
+>
+> **Unofficial.** An independent project, not affiliated with or endorsed by the Tauri
+> project or the Tauri Programme within the Commons Conservancy.
 
 ## Where this fits
 
@@ -18,6 +20,11 @@ already run:
 | Insecure **configuration** — dangerous flags, over-broad capability scopes, missing CSP | **tauri-audit** |
 | Vulnerable **Rust dependencies** | [`cargo-audit`](https://github.com/rustsec/rustsec) / RustSec |
 | Vulnerable **npm dependencies** | `npm audit` |
+| General-purpose code patterns across any language | [Semgrep](https://semgrep.dev), [CodeQL](https://codeql.github.com) |
+
+Semgrep and CodeQL analyze code; tauri-audit analyzes the configuration that decides what
+that code is permitted to do. Neither knows what `dangerousDisableAssetCspModification`
+means or that `$CONFIG/**` is a different grant from `$APPCONFIG/**`.
 
 tauri-audit does check a small number of Tauri-specific advisories where the vulnerability
 only matters in combination with your configuration (so a plain version bump check would
@@ -151,6 +158,31 @@ Most rules are `synthetic` because the settings they look for are rare in shippe
 which is the point of them being dangerous. That asymmetry is expected rather than a gap to
 close.
 
+### What this is worth on v2, honestly
+
+Most of the deterministic rules above are v1-only, and that is a fact about Tauri rather
+than about coverage. v1's allowlist was opt-in but coarse, and it carried explicit
+`dangerous*` switches that a project could turn on. v2 replaced it with capabilities, which
+are default-deny and per-command — so there are simply fewer settings left that are wrong
+under every reading.
+
+The value on v2 is therefore different in kind. It is not "find the dangerous flag"; it is
+**making capability grants reviewable**: noticing that a filesystem scope reaches past the
+application, that a CVE's exemption cannot be confirmed, that no CSP is set. Those are
+judgement calls surfaced for a human, which is why the v2 rules are heuristic and why they
+do not gate. If you are on v2 and this tool reports nothing gating, that is the expected
+result and largely a credit to v2's design.
+
+### About the Tauri sample in the corpus
+
+`tests/corpus/true-positive/` contains Tauri's own `examples/api` configuration, which
+trips `TA-V1-001` by setting `allowlist.all: true`. That is **not a defect in Tauri**. It
+is an API demonstration whose purpose is to exercise every API in one place, so enabling
+all of them is correct for what it is and wrong only if copied into a product. It sits in
+the corpus because it is a permissively licensed, real configuration written by people who
+know the framework — which makes it far better evidence than a fixture written by whoever
+wrote the rule.
+
 **Polarity is decided per rule, from the primary source.** For most rules above the
 dangerous state is a setting explicitly turned on, so an absent key is safe. Two are the
 exact inverse. `TA-DEP-001` treats an **unset** `plugins.shell.open` as affected, because
@@ -195,9 +227,15 @@ nobody keeps in their pipeline.
   written as a template literal is **not analyzed** and produces no finding. Comments and
   string literals are masked before the option is looked for, so a commented-out or
   quoted mention does not trigger it either.
-- **Dataflow, when it arrives, will be single-function-scope only.** Cross-function flow,
-  return values, and reassignment are not tracked.
+- **There is no dataflow analysis yet.** Nothing tracks a value from a source to a sink,
+  so a rule cannot tell whether attacker-controlled input reaches a dangerous call. When it
+  lands (Phase 3) it will be single-function-scope only: cross-function flow, return values
+  and reassignment will not be followed, which trades false negatives for false positives
+  deliberately.
 - **Rust source analysis is not implemented yet** (planned, tree-sitter based).
+- **Lockfiles**: `Cargo.lock`, `package-lock.json` and `pnpm-lock.yaml` (v5/v6/v9) give
+  confirmed versions; `yarn.lock` and `bun.lock*` are recognized but not parsed, so those
+  projects fall back to manifest ranges and their dependency findings say so.
 - **Evidence strength differs per rule**, and each rule says which it has — see the
   `Evidence` column above.
 
