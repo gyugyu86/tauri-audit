@@ -41,7 +41,11 @@ report() { # label, output
 
 echo "Authorship-trace scan (tests/corpus/ excluded by design — see header)"
 
-report "tracked files" "$(git grep -inE "$PATTERN" -- . ':(exclude)tests/corpus' 2>/dev/null || true)"
+# This script is excluded from its own scan: it is the one file that must contain
+# every word being searched for, and matching its own pattern definition is a
+# self-reference rather than a finding.
+report "tracked files" \
+  "$(git grep -inE "$PATTERN" -- . ':(exclude)tests/corpus' ':(exclude)scripts/check-authorship-traces.sh' 2>/dev/null || true)"
 report "commit messages" "$(git log --format='%H %s%n%b' | grep -inE "$PATTERN" || true)"
 report "file names" "$(git ls-files | grep -inE "$PATTERN" || true)"
 report "authors" "$(git log --format='%an <%ae>%n%cn <%ce>' | sort -u | grep -inE "$PATTERN" || true)"
