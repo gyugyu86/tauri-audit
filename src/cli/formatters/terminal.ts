@@ -68,7 +68,8 @@ export function formatTerminal(findings: readonly Finding[], meta: ReportMeta): 
       heuristics > 0
         ? chalk.dim(` — ${String(heuristics)} heuristic, not counted toward the exit code by default`)
         : '';
-    out.push(`${String(findings.length)} findings (${breakdown})${heuristicNote}`);
+    const noun = findings.length === 1 ? 'finding' : 'findings';
+    out.push(`${String(findings.length)} ${noun} (${breakdown})${heuristicNote}`);
   }
 
   return out.join('\n');

@@ -1,0 +1,11 @@
+{
+  "productName": "ddacm-v2-true",
+  "version": "0.1.0",
+  "identifier": "com.example.ddacm",
+  "app": {
+    "security": {
+      "csp": "default-src 'self'",
+      "dangerousDisableAssetCspModification": true
+    }
+  }
+}

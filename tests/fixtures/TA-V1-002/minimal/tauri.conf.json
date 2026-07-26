@@ -1,0 +1,13 @@
+{
+  "build": { "distDir": "../dist", "devPath": "../dist" },
+  "package": { "productName": "remote-minimal", "version": "0.1.0" },
+  "tauri": {
+    "allowlist": { "all": false },
+    "security": {
+      "csp": "default-src 'self'",
+      "dangerousRemoteDomainIpcAccess": [
+        { "domain": "docs.example.com", "windows": ["help"] }
+      ]
+    }
+  }
+}

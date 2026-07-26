@@ -1,0 +1,11 @@
+{
+  "build": { "distDir": "../dist", "devPath": "../dist" },
+  "package": { "productName": "ddacm-v1-false", "version": "0.1.0" },
+  "tauri": {
+    "allowlist": { "all": false },
+    "security": {
+      "csp": "default-src 'self'",
+      "dangerousDisableAssetCspModification": false
+    }
+  }
+}

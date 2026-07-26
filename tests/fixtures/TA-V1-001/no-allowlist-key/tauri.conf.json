@@ -1,0 +1,7 @@
+{
+  "build": { "distDir": "../dist", "devPath": "../dist" },
+  "package": { "productName": "no-allowlist", "version": "0.1.0" },
+  "tauri": {
+    "security": { "csp": "default-src 'self'" }
+  }
+}

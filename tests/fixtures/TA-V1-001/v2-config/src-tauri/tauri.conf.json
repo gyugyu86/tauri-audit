@@ -1,0 +1,8 @@
+{
+  "productName": "v2-app",
+  "version": "0.1.0",
+  "identifier": "com.example.v2",
+  "app": {
+    "security": { "csp": "default-src 'self'" }
+  }
+}

@@ -50,7 +50,8 @@ export function formatMarkdown(findings: readonly Finding[], meta: ReportMeta): 
     const summary = SEVERITY_SECTIONS.filter((severity) => counts[severity] > 0)
       .map((severity) => `${severity} ${String(counts[severity])}`)
       .join(' · ');
-    lines.push(`${String(ordered.length)} findings (${summary})`, '');
+    const noun = ordered.length === 1 ? 'finding' : 'findings';
+    lines.push(`${String(ordered.length)} ${noun} (${summary})`, '');
   }
 
   for (const severity of SEVERITY_SECTIONS) {

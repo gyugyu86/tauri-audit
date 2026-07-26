@@ -1,0 +1,8 @@
+{
+  "build": { "distDir": "../dist", "devPath": "../dist" },
+  "package": { "productName": "remote-empty", "version": "0.1.0" },
+  "tauri": {
+    "allowlist": { "all": false },
+    "security": { "csp": "default-src 'self'", "dangerousRemoteDomainIpcAccess": [] }
+  }
+}

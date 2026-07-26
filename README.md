@@ -121,8 +121,25 @@ gate is a separate step.
 
 ## Rules
 
-Landing incrementally — see [Roadmap](#roadmap). Rule documentation lives in the finding
-text itself (each finding explains why it is dangerous and how to fix it).
+Rule documentation lives in the finding text itself — each finding explains why the setting
+is dangerous and how to confirm or fix it, so the report is readable without this table.
+
+| ID | Applies to | Detects | Severity / confidence |
+| --- | --- | --- | --- |
+| `TA-CONF-002` | v1 + v2 | `security.dangerousDisableAssetCspModification` | `true` → high / high · directive list → medium / heuristic |
+| `TA-V1-001` | v1 | `tauri.allowlist.all: true` — every v1 API enabled at once | high / high |
+| `TA-V1-002` | v1 | `tauri.security.dangerousRemoteDomainIpcAccess` — remote origins granted IPC | `enableTauriAPI` or plugins → high / high · domain-only → medium / heuristic |
+| `TA-V1-003` | v1 | `tauri.security.dangerousUseHttpScheme: true` | medium / high |
+
+Two of these grade themselves by content rather than by presence.
+`dangerousDisableAssetCspModification: true` switches Tauri's CSP rewriting off entirely,
+while a directive array narrows it — the same key, two different settings, so they are not
+reported the same way. Likewise a remote-IPC entry granting `enableTauriAPI` hands over the
+whole API surface, whereas one naming only a domain and windows enables the mechanism
+without granting commands through that setting alone, and what those windows expose
+otherwise is not visible in the config.
+
+More rules are landing — see [Roadmap](#roadmap).
 
 ## Honest limitations
 
@@ -144,6 +161,11 @@ nobody keeps in their pipeline.
 - **Dataflow, when it arrives, will be single-function-scope only.** Cross-function flow,
   return values, and reassignment are not tracked.
 - **Rust source analysis is not implemented yet** (planned, tree-sitter based).
+- **Evidence strength differs per rule.** The clean corpus proves no rule fires on six real
+  correctly written apps. Proving the reverse — that a rule fires on real misconfigured
+  code — currently only holds for `TA-V1-001`, which trips Tauri's own `examples/api`
+  config. The other rules are validated against fixtures only, because settings this
+  dangerous are rare in shipped applications.
 
 ## Roadmap
 

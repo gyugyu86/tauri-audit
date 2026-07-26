@@ -1,0 +1,17 @@
+{
+  "build": { "distDir": "../dist", "devPath": "../dist" },
+  "package": { "productName": "remote-plugins", "version": "0.1.0" },
+  "tauri": {
+    "allowlist": { "all": false },
+    "security": {
+      "csp": "default-src 'self'",
+      "dangerousRemoteDomainIpcAccess": [
+        {
+          "domain": "widgets.example.com",
+          "windows": ["embed"],
+          "plugins": ["shell"]
+        }
+      ]
+    }
+  }
+}

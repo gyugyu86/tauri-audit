@@ -1,0 +1,8 @@
+{
+  "build": { "distDir": "../dist", "devPath": "../dist" },
+  "package": { "productName": "allowlist-no-all-key", "version": "0.1.0" },
+  "tauri": {
+    "allowlist": { "fs": { "scope": ["$APPDATA/**"] } },
+    "security": { "csp": "default-src 'self'" }
+  }
+}

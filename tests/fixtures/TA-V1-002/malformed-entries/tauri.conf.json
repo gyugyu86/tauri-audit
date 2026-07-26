@@ -1,0 +1,15 @@
+{
+  "build": { "distDir": "../dist", "devPath": "../dist" },
+  "package": { "productName": "remote-malformed", "version": "0.1.0" },
+  "tauri": {
+    "allowlist": { "all": false },
+    "security": {
+      "csp": "default-src 'self'",
+      "dangerousRemoteDomainIpcAccess": [
+        "not-an-object",
+        null,
+        { "enableTauriAPI": true }
+      ]
+    }
+  }
+}

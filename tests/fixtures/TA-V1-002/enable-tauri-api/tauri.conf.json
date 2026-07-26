@@ -1,0 +1,18 @@
+{
+  "build": { "distDir": "../dist", "devPath": "../dist" },
+  "package": { "productName": "remote-full-api", "version": "0.1.0" },
+  "tauri": {
+    "allowlist": { "all": false },
+    "security": {
+      "csp": "default-src 'self'",
+      "dangerousRemoteDomainIpcAccess": [
+        {
+          "scheme": "https",
+          "domain": "app.example.com",
+          "windows": ["main"],
+          "enableTauriAPI": true
+        }
+      ]
+    }
+  }
+}

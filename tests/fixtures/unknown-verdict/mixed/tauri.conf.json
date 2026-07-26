@@ -1,0 +1,8 @@
+{
+  "identifier": "com.example.mixed",
+  "app": { "security": { "dangerousDisableAssetCspModification": true } },
+  "tauri": {
+    "allowlist": { "all": true },
+    "security": { "dangerousUseHttpScheme": true }
+  }
+}
