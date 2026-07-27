@@ -4,7 +4,15 @@ name: Self-scan
 # SARIF, so the code-scanning rendering can be checked against a known mixture of
 # severities and confidences.
 #
-# The scan target is `tests/fixtures/vulnerable/demo-app` and must stay that way.
+# The scan target is `tests/fixtures/vulnerable/` — synthetic samples only, never
+# the repository root and never `tests/corpus/`. It holds two applications:
+# `demo-app` (v2) and `legacy-app` (v1), which between them produce findings at
+# every severity and, crucially, two rules that report at BOTH confidences in a
+# single scan. That mixed case is the only one where a heuristic alert inherits a
+# confident rule's band, because SARIF puts security-severity on the rule while
+# level is per-result — so it is the only way to check whether `level` and the
+# `[heuristic]` prefix are enough to tell them apart.
+#
 # Scanning the repository root would also pick up `tests/corpus/`, which holds
 # unmodified configuration from real third-party projects. Those produce
 # heuristic findings about ordinary design choices — shipping without a CSP is
@@ -39,7 +47,7 @@ jobs:
       - name: Scan the sample app
         run: |
           set +e
-          node dist/cli/index.js tests/fixtures/vulnerable/demo-app --sarif > self-scan.sarif
+          node dist/cli/index.js tests/fixtures/vulnerable --sarif > self-scan.sarif
           echo "exit-code=$?" >> "$GITHUB_OUTPUT"
           # Findings are the point of this workflow, so a non-zero exit is the
           # expected outcome and must not fail the job.

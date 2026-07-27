@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schema.tauri.app/config/1",
+  "build": {
+    "distDir": "../dist",
+    "devPath": "http://localhost:1420"
+  },
+  "package": {
+    "productName": "legacy-app",
+    "version": "0.1.0"
+  },
+  "tauri": {
+    "allowlist": {
+      "all": true
+    },
+    "security": {
+      "csp": null,
+      "dangerousDisableAssetCspModification": ["style-src"],
+      "dangerousUseHttpScheme": true,
+      "dangerousRemoteDomainIpcAccess": [
+        {
+          "scheme": "https",
+          "domain": "console.example.com",
+          "windows": ["main"],
+          "enableTauriAPI": true
+        },
+        {
+          "domain": "docs.example.com",
+          "windows": ["help"]
+        }
+      ]
+    }
+  }
+}

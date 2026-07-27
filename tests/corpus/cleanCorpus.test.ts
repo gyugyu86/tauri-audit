@@ -181,8 +181,11 @@ describe('the corpus is never published as findings', () => {
     'utf8',
   );
 
-  it('scans the synthetic sample app', () => {
-    expect(workflow).toContain('tests/fixtures/vulnerable/demo-app');
+  it('scans only the synthetic samples', () => {
+    // The directory, not one app inside it: it holds a v2 and a v1 sample, and
+    // scanning both together is what produces a rule reporting at two
+    // confidences in one run — the case the rendering check needs.
+    expect(workflow).toContain('tests/fixtures/vulnerable');
   });
 
   it('never names the corpus as a scan target', () => {
@@ -215,4 +218,40 @@ describe('the corpus is unmodified', () => {
       expect(verifyApp(app)).toEqual([]);
     },
   );
+});
+
+describe('the self-scan target keeps its rendering-check subject', () => {
+  // The self-scan exists so the code-scanning UI can be checked against a known
+  // mixture. One property of that mixture is load-bearing and easy to lose by
+  // editing a fixture: at least one rule must report at BOTH confidences in a
+  // single scan.
+  //
+  // That case is the only one where a heuristic alert inherits a confident
+  // rule's band, because SARIF puts security-severity on the rule while level is
+  // per-result. Without it the screenshot cannot answer the question it is taken
+  // to answer, and nothing else would notice.
+  const VULNERABLE = path.join(CORPUS, '..', 'fixtures', 'vulnerable');
+
+  it('produces at least one rule reporting at two confidences', () => {
+    const byRule = new Map<string, Set<string>>();
+    for (const finding of scan(VULNERABLE).findings) {
+      const seen = byRule.get(finding.ruleId) ?? new Set<string>();
+      seen.add(finding.confidence);
+      byRule.set(finding.ruleId, seen);
+    }
+
+    const mixed = [...byRule.entries()]
+      .filter(([, confidences]) => confidences.size > 1)
+      .map(([ruleId]) => ruleId);
+
+    expect(mixed.length, 'no rule reports at both confidences — the rendering check has no subject').toBeGreaterThan(0);
+  });
+
+  it('covers both configuration generations', () => {
+    // demo-app is v2 and legacy-app is v1; losing either narrows what the
+    // rendering check can show.
+    const project = buildProjectContext(VULNERABLE);
+    const versions = new Set(project.configs.map((config) => config.verdict.version));
+    expect([...versions].sort()).toEqual(['v1', 'v2']);
+  });
 });
