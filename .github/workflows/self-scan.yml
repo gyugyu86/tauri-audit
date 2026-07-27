@@ -49,12 +49,24 @@ jobs:
       - name: Show what will be uploaded
         run: |
           echo "exit code: ${{ steps.scan.outputs.exit-code }} (1 is expected — the sample is insecure by design)"
+          # Read and parse explicitly. `require()` picks a loader by extension and
+          # falls back to the JavaScript one for anything it does not know, so
+          # require('./self-scan.sarif') parsed SARIF as source and died on the
+          # first colon — failing this step, and with it the job, one step before
+          # the upload that is the whole point of the workflow.
           node -e "
-            const s = require('./self-scan.sarif').runs[0];
-            const rules = Object.fromEntries(s.tool.driver.rules.map(r => [r.id, r]));
-            for (const r of s.results) {
-              const p = rules[r.ruleId].properties['security-severity'];
-              console.log(\`\${r.ruleId}  level=\${r.level}  security-severity=\${p}  \${r.properties.confidence}\`);
+            const sarif = JSON.parse(require('node:fs').readFileSync('self-scan.sarif', 'utf8'));
+            const run = sarif.runs[0];
+            const rules = Object.fromEntries(run.tool.driver.rules.map((r) => [r.id, r]));
+            console.log(run.results.length + ' result(s), ' + run.tool.driver.rules.length + ' rule(s)');
+            for (const result of run.results) {
+              const score = rules[result.ruleId].properties['security-severity'];
+              console.log(
+                result.ruleId.padEnd(14) +
+                ' level=' + String(result.level).padEnd(8) +
+                ' security-severity=' + String(score).padEnd(5) +
+                ' ' + result.properties.confidence
+              );
             }
           "
 
