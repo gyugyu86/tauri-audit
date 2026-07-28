@@ -47,15 +47,17 @@ insecure.
 
 ## Upstream notification
 
-An issue is to be opened on KiwiTalk/KiwiTalk describing the `allowlist.all: true`
-observation and stating that these configuration files are vendored here under Apache-2.0
-with attribution, with a standing offer to remove them on request. It is filed once this
-repository is public, so the links in it resolve — a notice pointing at a 404 is worse than
-none. Publication here is a quiet visibility change; the notice precedes the parts that
-constitute actually releasing the tool.
+Filed as [KiwiTalk/KiwiTalk#2415](https://github.com/KiwiTalk/KiwiTalk/issues/2415) on
+2026-07-28. It describes the `allowlist.all: true` observation and states that these
+configuration files are vendored here under Apache-2.0 with attribution, with a standing
+offer to remove them on request.
 
-*Status: not yet filed. This paragraph is updated with a link once it is, rather than
-describing it as done in advance.*
+It was filed only once this repository was public, so the links in it resolve — a notice
+pointing at a 404 is worse than none. Publication here is a quiet visibility change; the
+notice precedes the parts that constitute actually releasing the tool.
+
+*Until it was filed, this paragraph said so and carried no link. Writing it as done in
+advance would have been the easy version of exactly the thing this file exists to prevent.*
 
 The form is notification with a standing opt-out, not a request for permission. Apache-2.0
 already permits this vendoring with attribution, so consent is a courtesy rather than a
