@@ -91,7 +91,10 @@ export const TA_DEP_001: ProjectRule = {
         ruleId: 'TA-DEP-001',
         severity: advisory.severity,
         confidence: confidenceFor(match),
-        file: match.dependency.origin,
+        // `origin` is the display string, relative to the scan root. A finding's
+        // file must be absolute — reporters relativize it themselves, and SARIF
+        // does so against the checkout root rather than the scan root.
+        file: match.dependency.file,
         line: 1,
         target: `${match.dependency.name} ${match.dependency.value} — shell open scope not enforced (${match.certainty})`,
         whyDangerous:

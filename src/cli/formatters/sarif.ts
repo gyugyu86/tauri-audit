@@ -42,10 +42,10 @@ export interface SarifGrading {
  * `core/gate.ts` decides pass or fail. Conflating them would mean either hiding
  * findings or failing builds on uncertainty.
  *
- * Still unverified: how these render in the code-scanning UI. The thresholds
- * above are documented, so the banding is not in doubt; what a screenshot would
- * settle is whether the demoted `level` reads as intended next to the badge
- * GitHub derives from the number. Any adjustment stays inside this function.
+ * Confirmed against a real code-scanning run: GitHub resolves the band per
+ * alert, not per rule, so a rule that emits both confidences badges each of its
+ * alerts separately rather than lifting the heuristic ones to the confident
+ * rule's band. Any adjustment stays inside this function.
  */
 const SCORE: Readonly<Record<Severity, Readonly<Record<Confidence, number>>>> = {
   // Every value sits strictly inside (0.0, 10.0], and for each severity the
@@ -129,10 +129,9 @@ export function formatSarif(
   /**
    * The ceiling each rule declares, not what this run happened to produce.
    *
-   * `security-severity` is a rule-level property in SARIF while `level` is
-   * per-result, and GitHub bands its displayed severity from the rule-level
-   * number. So a rule emitting both confidences needs one number to describe it,
-   * and there are two ways to pick it.
+   * `security-severity` is a rule-level property in SARIF, so a rule emitting
+   * both confidences still needs one number to describe it, and there are two
+   * ways to pick it.
    *
    * Taking the strongest grading the run produced was the first attempt, and it
    * makes rule metadata depend on the project being scanned: the same tool
@@ -141,9 +140,9 @@ export function formatSarif(
    * not move with the target. The declared `severity` and `maxConfidence` give a
    * fixed answer, and `rules.test.ts` asserts no finding ever exceeds it.
    *
-   * Grading every descriptor as if certain — the version before that — was
-   * simply wrong: TA-DEP-001 is heuristic by construction, and its alerts banded
-   * `high` while their own `level` correctly said `warning`.
+   * This number does not decide what a reader sees. A real code-scanning run
+   * showed one rule's alerts badged at different severities, so GitHub resolves
+   * the band per alert. The descriptor is documentation; `level` is the display.
    */
   const declared = new Map(
     ALL_RULES.map((rule) => [rule.id, { severity: rule.severity, confidence: rule.maxConfidence }]),

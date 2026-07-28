@@ -151,13 +151,14 @@ function collectManifestDependencies(
   into: Map<string, DependencyVersion>,
   ecosystem: Ecosystem,
   origin: string,
+  file: string,
   readSpecifier: (entry: unknown) => string | undefined,
 ): void {
   if (!isRecord(table)) return;
   for (const [name, entry] of Object.entries(table)) {
     const value = readSpecifier(entry);
     if (value === undefined) continue;
-    record(into, { name, ecosystem, value, source: 'manifest', origin });
+    record(into, { name, ecosystem, value, source: 'manifest', origin, file });
   }
 }
 
@@ -166,6 +167,7 @@ function collectCargoLock(
   value: unknown,
   into: Map<string, DependencyVersion>,
   origin: string,
+  file: string,
 ): void {
   if (!isRecord(value)) return;
   const packages = value['package'];
@@ -176,7 +178,7 @@ function collectCargoLock(
     const name = entry['name'];
     const version = entry['version'];
     if (typeof name !== 'string' || typeof version !== 'string') continue;
-    record(into, { name, ecosystem: 'cargo', value: version, source: 'lockfile', origin });
+    record(into, { name, ecosystem: 'cargo', value: version, source: 'lockfile', origin, file });
   }
 }
 
@@ -187,7 +189,12 @@ function collectCargoLock(
  * duplicated versions); v1 nests `dependencies`. Both are walked so the tool
  * works with whatever npm the project last used.
  */
-function collectNpmLock(value: unknown, into: Map<string, DependencyVersion>, origin: string): void {
+function collectNpmLock(
+  value: unknown,
+  into: Map<string, DependencyVersion>,
+  origin: string,
+  file: string,
+): void {
   if (!isRecord(value)) return;
 
   const packages = value['packages'];
@@ -200,7 +207,7 @@ function collectNpmLock(value: unknown, into: Map<string, DependencyVersion>, or
       if (marker === -1) continue;
       const name = installPath.slice(marker + 'node_modules/'.length);
       if (name === '') continue;
-      record(into, { name, ecosystem: 'npm', value: version, source: 'lockfile', origin });
+      record(into, { name, ecosystem: 'npm', value: version, source: 'lockfile', origin, file });
     }
   }
 
@@ -210,7 +217,7 @@ function collectNpmLock(value: unknown, into: Map<string, DependencyVersion>, or
       if (!isRecord(entry)) continue;
       const version = entry['version'];
       if (typeof version === 'string') {
-        record(into, { name, ecosystem: 'npm', value: version, source: 'lockfile', origin });
+        record(into, { name, ecosystem: 'npm', value: version, source: 'lockfile', origin, file });
       }
       walkV1(entry['dependencies']);
     }
@@ -360,6 +367,7 @@ export function buildProjectContext(rootDir: string, options: DiscoveryOptions =
               project.npmDependencies,
               'npm',
               shortPath,
+              file.path,
               npmSpecifier,
             );
           }
@@ -374,6 +382,7 @@ export function buildProjectContext(rootDir: string, options: DiscoveryOptions =
               project.cargoDependencies,
               'cargo',
               shortPath,
+              file.path,
               cargoSpecifier,
             );
           }
@@ -381,15 +390,15 @@ export function buildProjectContext(rootDir: string, options: DiscoveryOptions =
         break;
       }
       case 'cargo-lock': {
-        collectCargoLock(doc.value, project.cargoDependencies, shortPath);
+        collectCargoLock(doc.value, project.cargoDependencies, shortPath, file.path);
         break;
       }
       case 'npm-lock': {
-        collectNpmLock(doc.value, project.npmDependencies, shortPath);
+        collectNpmLock(doc.value, project.npmDependencies, shortPath, file.path);
         break;
       }
       case 'pnpm-lock': {
-        const extracted = extractPnpmLock(doc.value, shortPath);
+        const extracted = extractPnpmLock(doc.value, shortPath, file.path);
         if (extracted.unsupportedReason !== undefined) {
           // Do not guess at an unrecognized key format: attributing a wrong
           // version to a package is worse than admitting we cannot read it.

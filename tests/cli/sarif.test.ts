@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -9,6 +9,9 @@ import { describe, expect, it } from 'vitest';
 import { formatSarif, sarifGrading } from '../../src/cli/formatters/sarif.js';
 import type { ReportMeta } from '../../src/cli/formatters/reportModel.js';
 import type { Confidence, Finding, Severity } from '../../src/core/types.js';
+import { buildProjectContext } from '../../src/core/projectContext.js';
+import { runRules } from '../../src/core/ruleEngine.js';
+import { ALL_RULES } from '../../src/core/rules/index.js';
 
 const SARIF_SCHEMA_PATH = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -310,5 +313,52 @@ describe('rule descriptors reflect the confidence actually emitted', () => {
       'TA-X-002',
     );
     expect(mixed).toBe(ruleScore([finding('TA-X-002', 'high', 'high')], 'TA-X-002'));
+  });
+});
+
+describe('every SARIF location points at a file that exists', () => {
+  // GitHub resolves artifactLocation.uri against the checkout root. A URI that
+  // does not resolve is accepted, displayed, and simply never links to source —
+  // the alert looks fine and is unusable. That is how TA-DEP-001 shipped a
+  // finding pointing at `demo-app/src-tauri/Cargo.lock`, three directories
+  // short of the real path, because it put a display string in `Finding.file`
+  // where an absolute path belongs.
+  const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+
+  function urisFor(target: string): string[] {
+    const project = buildProjectContext(path.join(REPO, target));
+    const findings = runRules(project, ALL_RULES).findings;
+    const sarif = JSON.parse(formatSarif(findings, {
+      rootDir: project.rootDir,
+      configsAnalyzed: project.configs.length,
+      configsUnplaced: project.unplacedConfigs.length,
+      capabilitiesAnalyzed: project.capabilities.length,
+      filesUnparsable: project.filesUnparsable,
+      warnings: project.warnings,
+    }, { cwd: REPO })) as { runs: { results: { locations: { physicalLocation: { artifactLocation: { uri: string } } }[] }[] }[] };
+
+    return (sarif.runs[0]?.results ?? []).map(
+      (result) => result.locations[0]?.physicalLocation.artifactLocation.uri ?? '',
+    );
+  }
+
+  // The self-scan target, because that is what reaches the Security tab.
+  it.each(['tests/fixtures/vulnerable', 'tests/corpus/true-positive'])(
+    'scanning %s produces only resolvable URIs',
+    (target) => {
+      const uris = urisFor(target);
+      expect(uris.length, 'no results — the assertion would pass vacuously').toBeGreaterThan(0);
+
+      const missing = uris.filter((uri) => !existsSync(path.join(REPO, uri)));
+      expect(missing, 'SARIF URIs that do not resolve from the checkout root').toEqual([]);
+    },
+  );
+
+  it('covers a dependency finding, which is the case that broke', () => {
+    // Guards the guard: if the sample stopped producing a TA-DEP-001 finding the
+    // assertion above would still pass while no longer testing this path.
+    const project = buildProjectContext(path.join(REPO, 'tests/fixtures/vulnerable'));
+    const ruleIds = runRules(project, ALL_RULES).findings.map((finding) => finding.ruleId);
+    expect(ruleIds).toContain('TA-DEP-001');
   });
 });

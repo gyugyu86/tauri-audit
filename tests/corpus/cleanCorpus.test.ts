@@ -226,10 +226,11 @@ describe('the self-scan target keeps its rendering-check subject', () => {
   // editing a fixture: at least one rule must report at BOTH confidences in a
   // single scan.
   //
-  // That case is the only one where a heuristic alert inherits a confident
-  // rule's band, because SARIF puts security-severity on the rule while level is
-  // per-result. Without it the screenshot cannot answer the question it is taken
-  // to answer, and nothing else would notice.
+  // That case is the one worth looking at, because the two alerts share a rule
+  // descriptor and therefore a single rule-level `security-severity`, and only
+  // `level` and the `[heuristic]` prefix distinguish them. Without it the
+  // screenshot cannot answer the question it is taken to answer, and nothing
+  // else would notice.
   const VULNERABLE = path.join(CORPUS, '..', 'fixtures', 'vulnerable');
 
   it('produces at least one rule reporting at two confidences', () => {

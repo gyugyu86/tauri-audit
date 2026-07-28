@@ -26,8 +26,17 @@ export interface DependencyVersion {
   /** The version string as resolved, or the range as declared. */
   value: string;
   source: VersionSource;
-  /** Where it came from, relative to the scan root, for the finding message. */
+  /**
+   * Where it came from, relative to the scan root. For display only.
+   *
+   * A finding's `file` must be absolute — reporters relativize it themselves,
+   * SARIF against the checkout root rather than the scan root. Putting this
+   * string there instead produced a SARIF URI missing its leading directories,
+   * which GitHub accepted and then could not resolve to a file. Use `file`.
+   */
   origin: string;
+  /** Absolute path to the manifest or lockfile. This is what a finding reports. */
+  file: string;
 }
 
 /**

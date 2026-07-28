@@ -81,7 +81,7 @@ export function parsePackageKey(key: string): { name: string; version: string } 
   return undefined;
 }
 
-export function extractPnpmLock(value: unknown, origin: string): PnpmLockResult {
+export function extractPnpmLock(value: unknown, origin: string, file: string): PnpmLockResult {
   if (!isRecord(value)) {
     return { dependencies: [], unsupportedReason: 'lockfile root is not a mapping' };
   }
@@ -112,6 +112,7 @@ export function extractPnpmLock(value: unknown, origin: string): PnpmLockResult 
       value: parsed.version,
       source: 'lockfile',
       origin,
+      file,
     });
   }
 
