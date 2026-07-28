@@ -73,6 +73,72 @@ const DEMOTED: Readonly<Record<SarifLevel, SarifLevel>> = {
   note: 'note',
 };
 
+/** Joins the config paths of a rule's v1 and v2 variants. Display only. */
+export const TARGET_SEPARATOR = ' / ';
+
+interface RuleDoc {
+  shortDescription: string;
+  fullDescription: string;
+  help: string;
+  references: readonly string[];
+  severity: Severity;
+  confidence: Confidence;
+}
+
+/**
+ * What each rule descriptor says, derived from the rule and nothing else.
+ *
+ * A SARIF rule descriptor is documentation about the rule; the per-result
+ * `message` is what happened at one location. Filling the descriptor from the
+ * first finding of the run conflated the two, and GitHub's alert list shows the
+ * descriptor rather than the message — so every alert of a rule was titled after
+ * whichever finding happened to come first. Two `dangerousRemoteDomainIpcAccess`
+ * entries appeared under one title claiming `[0]` and `enableTauriAPI: true`,
+ * while the alert on line 26 was the second entry and had neither. The location
+ * was right and the title described something not there.
+ *
+ * Built once, at module load, from ALL_RULES. Nothing in it can vary with the
+ * project being scanned — which is the same reason `security-severity` is taken
+ * from the declared ceiling rather than from the run.
+ *
+ * A rule ID may have several rule objects: TA-CONF-001 and TA-CONF-002 each
+ * carry a v1 and a v2 variant that differ only in the config path they read.
+ * SARIF allows one descriptor per ID, so the distinct paths are joined and the
+ * rest is asserted identical by `sarif.test.ts`.
+ *
+ * Targets are accumulated as a list and joined once. Joining into a string and
+ * splitting it again to add the next one would have been shorter and wrong:
+ * TA-DEP-001's target already contains the separator, so a round trip through
+ * it would fragment `tauri-plugin-shell / @tauri-apps/plugin-shell <= 2.2.0`
+ * into two targets that no rule declares.
+ */
+const RULE_DOC: ReadonlyMap<string, RuleDoc> = (() => {
+  const targets = new Map<string, string[]>();
+  const byId = new Map<string, Omit<RuleDoc, 'shortDescription'>>();
+
+  for (const rule of ALL_RULES) {
+    const seen = targets.get(rule.id) ?? [];
+    if (!seen.includes(rule.target)) targets.set(rule.id, [...seen, rule.target]);
+
+    if (!byId.has(rule.id)) {
+      byId.set(rule.id, {
+        fullDescription: rule.whyDangerous,
+        help: rule.recommendation,
+        references: rule.references ?? [],
+        severity: rule.severity,
+        confidence: rule.maxConfidence,
+      });
+    }
+  }
+
+  return new Map(
+    [...byId].map(([id, doc]) => [
+      id,
+      { ...doc, shortDescription: (targets.get(id) ?? []).join(TARGET_SEPARATOR) },
+    ]),
+  );
+})();
+
 export function sarifGrading(severity: Severity, confidence: Confidence): SarifGrading {
   const base = LEVEL_BY_SEVERITY[severity];
   return {
@@ -144,34 +210,34 @@ export function formatSarif(
    * showed one rule's alerts badged at different severities, so GitHub resolves
    * the band per alert. The descriptor is documentation; `level` is the display.
    */
-  const declared = new Map(
-    ALL_RULES.map((rule) => [rule.id, { severity: rule.severity, confidence: rule.maxConfidence }]),
-  );
-
   for (const finding of ordered) {
     if (ruleIndex.has(finding.ruleId)) continue;
     ruleIndex.set(finding.ruleId, rules.length);
 
     // Findings with no registered rule — schema conformance, and synthetic
-    // findings in tests — are described by themselves.
-    const ceiling = declared.get(finding.ruleId) ?? {
+    // findings in tests — are described by themselves. Real rules never take
+    // this branch.
+    const doc = RULE_DOC.get(finding.ruleId) ?? {
+      shortDescription: finding.target,
+      fullDescription: finding.whyDangerous,
+      help: finding.recommendation,
+      references: finding.references ?? [],
       severity: finding.severity,
       confidence: finding.confidence,
     };
-    const grading = sarifGrading(ceiling.severity, ceiling.confidence);
-    const references = finding.references ?? [];
+    const grading = sarifGrading(doc.severity, doc.confidence);
 
     rules.push({
       id: finding.ruleId,
       name: finding.ruleId,
-      shortDescription: { text: finding.target },
-      fullDescription: { text: finding.whyDangerous },
-      help: { text: finding.recommendation },
+      shortDescription: { text: doc.shortDescription },
+      fullDescription: { text: doc.fullDescription },
+      help: { text: doc.help },
       defaultConfiguration: { level: grading.level },
-      ...(references[0] === undefined ? {} : { helpUri: references[0] }),
+      ...(doc.references[0] === undefined ? {} : { helpUri: doc.references[0] }),
       properties: {
         'security-severity': grading.securitySeverity,
-        ...(references.length > 0 ? { references } : {}),
+        ...(doc.references.length > 0 ? { references: doc.references } : {}),
       },
     });
   }

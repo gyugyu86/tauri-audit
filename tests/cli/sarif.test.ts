@@ -6,7 +6,7 @@ import { Ajv } from 'ajv';
 import addFormatsModule from 'ajv-formats';
 import { describe, expect, it } from 'vitest';
 
-import { formatSarif, sarifGrading } from '../../src/cli/formatters/sarif.js';
+import { formatSarif, sarifGrading, TARGET_SEPARATOR } from '../../src/cli/formatters/sarif.js';
 import type { ReportMeta } from '../../src/cli/formatters/reportModel.js';
 import type { Confidence, Finding, Severity } from '../../src/core/types.js';
 import { buildProjectContext } from '../../src/core/projectContext.js';
@@ -111,22 +111,39 @@ describe('run.automationDetails.id', () => {
 describe('references survive into the output', () => {
   const refs = ['https://example.invalid/GHSA-c9pr', 'https://nvd.example.invalid/CVE-2025-31477'];
 
+  // An ID no rule registers, so these exercise the fallback where a finding
+  // describes itself. A registered rule takes its descriptor from its own
+  // metadata instead — asserted separately below, since a finding may not
+  // decide what the rule's documentation says.
+  const UNREGISTERED = 'TA-TEST-000';
+
   it('appears on both the rule descriptor and the result', () => {
-    const document = parse([finding({ references: refs })]);
+    const document = parse([finding({ ruleId: UNREGISTERED, references: refs })]);
     expect(document.runs[0]?.tool.driver.rules[0]?.properties['references']).toEqual(refs);
     expect(document.runs[0]?.results[0]?.properties['references']).toEqual(refs);
   });
 
   it('uses the first reference as helpUri', () => {
-    expect(parse([finding({ references: refs })]).runs[0]?.tool.driver.rules[0]?.helpUri).toBe(
-      refs[0],
-    );
+    expect(
+      parse([finding({ ruleId: UNREGISTERED, references: refs })]).runs[0]?.tool.driver.rules[0]
+        ?.helpUri,
+    ).toBe(refs[0]);
   });
 
   it('omits the keys entirely when there are no references', () => {
-    const rule = parse([finding()]).runs[0]?.tool.driver.rules[0];
+    const rule = parse([finding({ ruleId: UNREGISTERED })]).runs[0]?.tool.driver.rules[0];
     expect(rule?.helpUri).toBeUndefined();
     expect(rule?.properties['references']).toBeUndefined();
+  });
+
+  it('takes a registered rule descriptor from the rule, not the finding', () => {
+    const declared = ALL_RULES.find((rule) => rule.id === 'TA-CONF-002')?.references ?? [];
+    expect(declared.length).toBeGreaterThan(0);
+
+    const document = parse([finding({ ruleId: 'TA-CONF-002', references: refs })]);
+    expect(document.runs[0]?.tool.driver.rules[0]?.properties['references']).toEqual(declared);
+    // The result still reports what the finding carried.
+    expect(document.runs[0]?.results[0]?.properties['references']).toEqual(refs);
   });
 });
 
@@ -360,5 +377,138 @@ describe('every SARIF location points at a file that exists', () => {
     const project = buildProjectContext(path.join(REPO, 'tests/fixtures/vulnerable'));
     const ruleIds = runRules(project, ALL_RULES).findings.map((finding) => finding.ruleId);
     expect(ruleIds).toContain('TA-DEP-001');
+  });
+});
+
+describe('rule descriptors describe the rule, not the run', () => {
+  // A SARIF rule descriptor is documentation about the rule; `message` is what
+  // happened at one location. Filling the descriptor from the first finding of
+  // the run conflated them, and GitHub's alert list renders the descriptor —
+  // so both dangerousRemoteDomainIpcAccess alerts were titled after entry [0]
+  // and its `enableTauriAPI: true`, including the one on line 26, which is
+  // entry [1] and has neither. Right location, wrong claim.
+  const REPO2 = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+
+  function descriptors(findings: Finding[]): Map<string, string> {
+    const document = parse(findings);
+    return new Map(
+      document.runs[0]?.tool.driver.rules.map((rule) => [
+        rule.id,
+        JSON.stringify({
+          short: (rule as unknown as { shortDescription: { text: string } }).shortDescription.text,
+          full: (rule as unknown as { fullDescription: { text: string } }).fullDescription.text,
+          help: (rule as unknown as { help: { text: string } }).help.text,
+          score: rule.properties['security-severity'],
+        }),
+      ]) ?? [],
+    );
+  }
+
+  const realFindings = runRules(
+    buildProjectContext(path.join(REPO2, 'tests/fixtures/vulnerable')),
+    ALL_RULES,
+  ).findings;
+
+  it('gives a rule the same descriptor whichever of its findings is present', () => {
+    // The bug in one assertion: describe a rule from its first finding, then
+    // from its second, and the two descriptions must agree.
+    const byRule = new Map<string, Finding[]>();
+    for (const found of realFindings) {
+      byRule.set(found.ruleId, [...(byRule.get(found.ruleId) ?? []), found]);
+    }
+
+    const multi = [...byRule.entries()].filter(([, found]) => found.length > 1);
+    expect(multi.length, 'no rule produced two findings — nothing to compare').toBeGreaterThan(0);
+
+    for (const [ruleId, found] of multi) {
+      const fromFirst = descriptors([found[0] as Finding]).get(ruleId);
+      const fromLast = descriptors([found[found.length - 1] as Finding]).get(ruleId);
+      expect(fromLast, `${ruleId} describes itself differently depending on which finding is reported`).toBe(fromFirst);
+    }
+  });
+
+  it('derives every descriptor from ALL_RULES alone', () => {
+    // The stronger direction: descriptor text is a pure function of the rule
+    // registry. A finding's target names one entry ("...[0]:
+    // https://console.example.com"); a rule's names the setting.
+    //
+    // Expected values are assembled from ALL_RULES here rather than compared
+    // against the string the formatter built, so the assertion does not just
+    // restate the implementation.
+    for (const [ruleId, encoded] of descriptors(realFindings)) {
+      const expected = ALL_RULES.filter((rule) => rule.id === ruleId).map((rule) => rule.target);
+      expect([...new Set(expected)].join(TARGET_SEPARATOR), `${ruleId} descriptor does not match its declared target`).toBe(
+        (JSON.parse(encoded) as { short: string }).short,
+      );
+    }
+  });
+
+  it('does not fragment a target that contains the separator', () => {
+    // TA-DEP-001 declares "tauri-plugin-shell / @tauri-apps/plugin-shell <=
+    // 2.2.0 ...". Accumulating targets by joining and re-splitting would turn
+    // that single target into two.
+    const short = (JSON.parse(descriptors(realFindings).get('TA-DEP-001') ?? '{}') as { short?: string }).short;
+    expect(short).toBe(ALL_RULES.find((rule) => rule.id === 'TA-DEP-001')?.target);
+  });
+
+  it('keeps same-ID rule variants agreeing on everything but the target', () => {
+    // TA-CONF-001 and TA-CONF-002 each carry a v1 and a v2 variant. Joining
+    // their targets is only honest while the rest matches; if a variant ever
+    // diverges, one of them would be silently undocumented.
+    const byId = new Map<string, typeof ALL_RULES>();
+    for (const rule of ALL_RULES) {
+      byId.set(rule.id, [...(byId.get(rule.id) ?? []), rule] as typeof ALL_RULES);
+    }
+
+    for (const [id, variants] of byId) {
+      if (variants.length < 2) continue;
+      const shape = variants.map((rule) =>
+        JSON.stringify({
+          severity: rule.severity,
+          confidence: rule.maxConfidence,
+          why: rule.whyDangerous,
+          rec: rule.recommendation,
+          refs: rule.references,
+        }),
+      );
+      expect(new Set(shape).size, `${id} variants disagree on more than their target`).toBe(1);
+    }
+  });
+});
+
+describe('findings from one rule are described individually', () => {
+  const REPO3 = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+  const findings = runRules(
+    buildProjectContext(path.join(REPO3, 'tests/fixtures/vulnerable')),
+    ALL_RULES,
+  ).findings;
+
+  it('gives every finding of a rule in one file its own message', () => {
+    // Four rules walk an array and can emit several findings from one file
+    // (TA-CAP-003, TA-V1-002, TA-DEP-001, TA-VITE-001). If a message were built
+    // once and reused, or a loop variable captured wrong, the messages would
+    // coincide — and every existing assertion would still pass.
+    const groups = new Map<string, string[]>();
+    for (const found of findings) {
+      const key = `${found.ruleId} ${found.file}`;
+      groups.set(key, [...(groups.get(key) ?? []), found.target]);
+    }
+
+    const shared = [...groups.entries()].filter(([, targets]) => targets.length > 1);
+    expect(shared.length, 'no rule reported twice from one file — nothing to compare').toBeGreaterThan(0);
+
+    for (const [key, targets] of shared) {
+      expect(new Set(targets).size, `${key} produced identical messages for different findings`).toBe(targets.length);
+    }
+  });
+
+  it('reflects each array entry, not the first one', () => {
+    // Specific to the case that broke: the two remote-domain entries must be
+    // reported with their own index and their own attributes.
+    const v1002 = findings.filter((found) => found.ruleId === 'TA-V1-002').map((found) => found.target);
+    expect(v1002.length).toBe(2);
+
+    expect(v1002.some((text) => text.includes('[0]') && text.includes('enableTauriAPI: true'))).toBe(true);
+    expect(v1002.some((text) => text.includes('[1]') && !text.includes('enableTauriAPI: true'))).toBe(true);
   });
 });

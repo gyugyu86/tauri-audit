@@ -227,10 +227,12 @@ describe('the self-scan target keeps its rendering-check subject', () => {
   // single scan.
   //
   // That case is the one worth looking at, because the two alerts share a rule
-  // descriptor and therefore a single rule-level `security-severity`, and only
-  // `level` and the `[heuristic]` prefix distinguish them. Without it the
-  // screenshot cannot answer the question it is taken to answer, and nothing
-  // else would notice.
+  // descriptor and therefore a single rule-level `security-severity`. In the
+  // alert list they carry the same title and are told apart only by the badge,
+  // which GitHub bands per alert; the `[heuristic]` prefix is in the result
+  // message, which only the alert page shows. Without this case the screenshot
+  // cannot answer the question it is taken to answer, and nothing else would
+  // notice.
   const VULNERABLE = path.join(CORPUS, '..', 'fixtures', 'vulnerable');
 
   it('produces at least one rule reporting at two confidences', () => {

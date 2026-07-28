@@ -8,9 +8,10 @@ name: Self-scan
 # the repository root and never `tests/corpus/`. It holds two applications:
 # `demo-app` (v2) and `legacy-app` (v1), which between them produce findings at
 # every severity and, crucially, two rules that report at BOTH confidences in a
-# single scan. Those alerts share one rule descriptor and so one rule-level
-# security-severity, leaving `level` and the `[heuristic]` prefix to tell them
-# apart — which is the thing worth checking by eye.
+# single scan. Those alerts share one rule descriptor, so the alert list titles
+# them identically and separates them only by the badge GitHub bands per alert;
+# the `[heuristic]` prefix lives in the result message, which the list does not
+# show and the alert page does. Checking that by eye is the point of this run.
 #
 # Scanning the repository root would also pick up `tests/corpus/`, which holds
 # unmodified configuration from real third-party projects. Those produce
