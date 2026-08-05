@@ -48,14 +48,29 @@ Reading an application's configuration during selection is required, not a viola
 coverage goals below are stated in terms of what a configuration contains. What may not
 happen is running the analyzer and letting its verdict influence the choice.
 
+## How large the corpus should be
+
+Around twenty applications, and never more than twenty-five.
+
+The cap exists because a corpus is not a scoreboard. Every application added past the point
+where it closes a real gap costs test time and review attention while adding nothing to the
+claim, and the pressure to reach a number is exactly the pressure that loosens the
+eligibility rules below. **If the applications meeting those rules run out, the work stops
+and the shortfall is reported.** Stopping early is a result; relaxing eligibility to keep
+counting is not.
+
 ## Coverage goals
 
 Applications are chosen to close gaps in what the corpus exercises, not by popularity. In
 priority order:
 
-1. **A third-party v1 application.** Currently zero. The only v1 configurations in the
-   corpus are Tauri's own examples, so `TA-V1-001`, `TA-V1-002` and `TA-V1-003` have no
-   independent evidence at all. One is worth a lot; two is better.
+1. **Third-party v1 applications — at least four, preferably six.** The only v1
+   configurations in the corpus are Tauri's own examples, and those carry no `Cargo.toml`,
+   so they are partially analyzed besides. `TA-V1-001`, `TA-V1-002` and `TA-V1-003` are
+   three of the four deterministic, build-failing rules, and not one of them has ever been
+   shown not to misfire on a correctly written third-party v1 application. That is the
+   largest hole in the evidence and it is worth more than any number of additional v2
+   applications.
 2. **An application configuring `plugins.shell`.** Currently zero. `TA-DEP-001`'s exemption
    paths — `open` set to `true`, to a regex, or to `false` — have no real-world material,
    which is why the rule is `synthetic-only`.
