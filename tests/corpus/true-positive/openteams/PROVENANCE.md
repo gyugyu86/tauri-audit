@@ -89,8 +89,12 @@ is insecure. Tauri's own `examples/api` sits in the same directory for the same 
 
 ## Upstream notification
 
-Not filed. This paragraph is updated with a link if and when it is, rather than describing
-it as done in advance.
+**Not notified.** The authors have not been told that these configuration files are vendored
+here, nor that the setting above was observed. Whether to do so is undecided.
+
+This paragraph is updated with a link if and when a notice is filed, rather than describing
+it as done in advance — the same order kept for `kiwitalk`, whose notice was written as
+pending until it actually existed.
 
 ## Original selection rationale
 

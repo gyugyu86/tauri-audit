@@ -14,8 +14,14 @@ in every change.
   (critical/high/medium/low/info) and `confidence` (high/heuristic) as **separate** fields.
   They are independent: something serious that we can only suspect stays heuristic.
 - **Zero tolerance for high-confidence false positives.** If a single high-confidence
-  finding appears against the corpus of correctly written real applications
-  (`tests/corpus/clean/`), that rule is demoted to heuristic or held back.
+  finding appears against the corpus of real third-party applications
+  (`tests/corpus/clean/`), that rule is demoted to heuristic or held back — unless the
+  finding is correct, in which case the application moves to `true-positive/` and the
+  reasoning is recorded there.
+- **Corpus eligibility may never be phrased in terms of what a rule objects to.** Selecting
+  on provenance and licensing keeps the sample independent; excluding an application because
+  its configuration contains the very setting a rule detects makes "no false positives" true
+  by construction. This was learned by doing it — see `docs/CORPUS-SELECTION.md`.
 - **Never run the analyzed application.** Static parsing only — fast, safe, CI-friendly.
 - **Dataflow is approximated within a single function scope.** Cross-function flow, return
   values and reassignment are not tracked: accept false negatives to avoid false positives.

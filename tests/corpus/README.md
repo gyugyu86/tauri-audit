@@ -14,7 +14,7 @@ The corpus is independent: nobody here wrote these configs with our rules in min
 
 | Directory | Meaning |
 | --- | --- |
-| `clean/` | Correctly written apps. Must produce **zero gating findings**. |
+| `clean/` | Apps meeting the selection criteria. Must produce **zero gating findings**. |
 | `true-positive/` | Apps that legitimately trip rules. Findings here are expected and correct. |
 
 Keeping them apart is what keeps the FP=0 assertion meaningful — if an app that genuinely
@@ -66,20 +66,29 @@ the analysis could run: neither produces a gating finding, which is what `clean/
 
 ### Gaps that remain
 
-No real-world material was found for:
+The August 2026 expansion closed several of these — `TA-V1-002` and `TA-V1-003` now have
+third-party material, and the filesystem variables `$APPCONFIG`, `$APPCACHE`, `$RESOURCE`
+and `$TEMP` all appear. What is still missing, after screening 278 repositories carrying a
+Tauri configuration:
 
+- **A v2 application that sets a CSP.** Every v2 application in the corpus ships
+  `csp: null`. This is the most valuable gap remaining, because it is the negative
+  evidence: there is no real application in which `TA-CONF-001` legitimately stays silent,
+  so the corpus cannot show the rule being quiet when it should be. Its absence is also a
+  finding in itself — shipping without a CSP appears to be the norm rather than the
+  exception, which is why the rule is `heuristic`.
+- **A capability mixing string and object permission entries.** The `PermissionEntry`
+  `anyOf` is still walked only by fixtures written here.
 - **TA-CONF-002** (`dangerousDisableAssetCspModification`) — no permissively licensed
-  application was found that sets it. Fixtures only.
-- **TA-V1-002** (`dangerousRemoteDomainIpcAccess`) and **TA-V1-003**
-  (`dangerousUseHttpScheme`) — neither appears in either third-party v1 application.
+  application setting it was found. Fixtures only.
 - **TA-DEP-001 firing.** grovr exercises the exemption, but no corpus application both
   depends on an affected shell plugin version *and* leaves `open` unset.
-- **`deny` alongside `allow`** in a filesystem scope, and fs variables other than
-  `$APPDATA`.
+- **`deny` alongside `allow`** in a filesystem scope.
 
-These are recorded rather than filled because filling them would mean either weakening the
-selection criteria or writing the evidence ourselves, and both would cost more than the gap
-does.
+These are recorded rather than filled. Filling them would mean either weakening the
+selection criteria or writing the evidence ourselves, and an absence of real-world material
+is itself an honest result — one worth more than a corpus quietly shaped until every rule
+had something to point at.
 
 ## Provenance and licensing
 

@@ -1,0 +1,102 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/schema.json",
+  "build": {
+    "beforeBuildCommand": "yarn build",
+    "beforeDevCommand": "yarn dev",
+    "devPath": "http://localhost:5173",
+    "distDir": "../dist"
+  },
+  "package": {
+    "productName": "luwav",
+    "version": "0.2.0"
+  },
+  "tauri": {
+    "allowlist": {
+      "all": true,
+      "fs": {
+        "all": true,
+        "scope": [
+          "$APPDATA/*",
+          "$APPDATA/media/*",
+          "$RESOURCE/*",
+          "$RESOURCE/../notes/*",
+          "$RESOURCE/../image/*",
+          "$RESOURCE/../audio/*",
+          "$RESOURCE/../video/*",
+          "$RESOURCE/../doc/*"
+        ],
+        "writeFile": true,
+        "readDir": true,
+        "readFile": true,
+        "removeFile": true,
+        "copyFile": true,
+        "createDir": true,
+        "removeDir": true,
+        "exists": true
+      },
+      "protocol": {
+        "all": true,
+        "asset": true,
+        "assetScope": ["**"]
+      },
+      "dialog": {
+        "all": true
+      }
+    },
+    "bundle": {
+      "active": true,
+      "category": "Utility",
+      "copyright": "Copyright (c) 2024 yyandbb and luwavic",
+      "deb": {
+        "depends": []
+      },
+      "externalBin": [],
+      "icon": [
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/128x128@2x.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
+      ],
+      "identifier": "com.luwavic.luwav",
+      "longDescription": "",
+      "macOS": {
+        "entitlements": null,
+        "exceptionDomain": "",
+        "frameworks": [],
+        "providerShortName": null,
+        "signingIdentity": null
+      },
+      "resources": [],
+      "shortDescription": "",
+      "targets": "all",
+      "windows": {
+        "certificateThumbprint": null,
+        "digestAlgorithm": "sha256",
+        "timestampUrl": ""
+      }
+    },
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' asset: https: http: data:; style-src 'self' 'unsafe-inline'",
+      "dangerousRemoteDomainIpcAccess": [
+        {
+          "windows": [],
+          "domain": "file://"
+        }
+      ]
+    },
+    "updater": {
+      "active": false
+    },
+    "windows": [
+      {
+        "fullscreen": false,
+        "height": 800,
+        "resizable": true,
+        "title": "Luwav",
+        "width": 1200,
+        "fileDropEnabled": false
+      }
+    ]
+  }
+}

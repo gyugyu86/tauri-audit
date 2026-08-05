@@ -86,29 +86,31 @@ counting is not.
 
 ## Coverage goals
 
-Applications are chosen to close gaps in what the corpus exercises, not by popularity. In
-priority order:
+Applications are chosen to close gaps in what the corpus exercises, not by popularity.
+Goals closed by the August 2026 expansion are kept here, struck through in prose rather than
+deleted, so the next round can see what has already been paid for.
 
-1. **Third-party v1 applications — at least four, preferably six.** The only v1
-   configurations in the corpus are Tauri's own examples, and those carry no `Cargo.toml`,
-   so they are partially analyzed besides. `TA-V1-001`, `TA-V1-002` and `TA-V1-003` are
-   three of the four deterministic, build-failing rules, and not one of them has ever been
-   run against a third-party v1 application at all. That is the largest hole in the evidence
-   and it is worth more than any number of additional v2 applications.
-2. **An application configuring `plugins.shell`.** Currently zero. `TA-DEP-001`'s exemption
-   paths — `open` set to `true`, to a regex, or to `false` — have no real-world material,
-   which is why the rule is `synthetic-only`.
-3. **A v2 application that sets a CSP correctly.** Currently zero: all three v2 applications
-   ship `csp: null`. There is no real application where `TA-CONF-001` legitimately stays
-   silent, which is exactly the negative evidence that matters most.
-4. **Filesystem scope variety.** Only `$APPDATA` appears today (via yaak). Other variables
-   (`$APPCONFIG`, `$APPLOCALDATA`, `$RESOURCE`) or a `deny` list alongside `allow` would
-   give `TA-CAP-003` real material.
-5. **A `vite.config` declaring `envPrefix`.** Real-world material for `TA-VITE-001`.
-6. **A `pnpm-lock.yaml`.** Exercises the pnpm resolution path against real data rather than
-   fixtures.
-7. **A capability mixing string and object permission entries.** Walks the `PermissionEntry`
-   `anyOf` with data nobody wrote for this repository.
+**Still open, in priority order:**
+
+1. **A v2 application that sets a CSP.** Every v2 application in the corpus ships
+   `csp: null`, so there is no real application in which `TA-CONF-001` legitimately stays
+   silent — the negative evidence that matters most. Screening 278 repositories did not turn
+   one up, which is itself a result about the ecosystem.
+2. **An application configuring `plugins.shell`.** `TA-DEP-001`'s exemption paths — `open`
+   set to `true`, to a regex, or to `false` — still have no real-world material, which is
+   why the rule remains `synthetic-only`.
+3. **A capability mixing string and object permission entries**, to walk the
+   `PermissionEntry` `anyOf` with data nobody wrote for this repository.
+4. **A `deny` list alongside `allow`** in a filesystem scope.
+
+**Closed:**
+
+- Third-party v1 applications. Ten were added; three moved to `true-positive/` after
+  analysis, leaving seven in `clean/` alongside Tauri's own two examples. `TA-V1-001`,
+  `TA-V1-002` and `TA-V1-003` all now have independent evidence.
+- Filesystem scope variety — `$APPCONFIG`, `$APPCACHE`, `$RESOURCE` and `$TEMP` all appear
+  in real configurations, where only `$APPDATA` did before.
+- A `vite.config` declaring `envPrefix`, and a real `pnpm-lock.yaml`.
 
 Not every goal has to be met. Any that cannot be filled is recorded in
 `tests/corpus/README.md` as a gap — an absence of real-world material is itself an honest

@@ -107,12 +107,19 @@ This exact predicate is also the pass condition of the clean-corpus regression t
 
 Two claims live here, and they are not the same claim:
 
-- **Ten real third-party applications produce zero high-confidence findings.** This is what
-  "no false positives" means, and it holds for all ten.
-- **Eight of those ten are analyzed completely.** The other two — Tauri's own v1
-  `helloworld` and `isolation` examples — carry a `tauri.conf.json` and no `Cargo.toml`,
-  because upstream keeps their Rust manifests elsewhere. Their dependency rules therefore
-  examined nothing, so those runs exit `2` rather than `0`, and say why.
+- **Nineteen applications produce zero high-confidence findings.** This is what "no false
+  positives" means, and it holds for all nineteen. Seventeen are third-party — chosen on
+  licensing and provenance, never on what a rule would say about them — and two are Tauri's
+  own v1 examples.
+- **Seventeen of the nineteen are analyzed completely.** The other two are those Tauri
+  examples: they carry a `tauri.conf.json` and no `Cargo.toml`, because upstream keeps their
+  Rust manifests elsewhere. Their dependency rules therefore examined nothing, so those runs
+  exit `2` rather than `0`, and say why.
+
+A further six applications sit in `tests/corpus/true-positive/`, where a rule fires and is
+right to. They are not failures of the corpus but its output: four arrived through the same
+selection process as the nineteen and were moved only after the finding was examined and
+judged correct.
 
 Eliding the difference would be the same mistake this tool refuses to make about its own
 output. Per-application coverage is recorded in `tests/corpus/`, next to the findings.
@@ -173,7 +180,7 @@ it has only been demonstrated against fixtures written for this repository. A ru
 understate its evidence but cannot claim `real-world` without a corpus application to back
 it — that direction is asserted in the suite.
 
-Firing on a *correctly written* application still counts, and is worth reading carefully:
+Firing on an application in `clean/` still counts, and is worth reading carefully:
 it proves the rule matches real code, and it simultaneously proves the rule must stay
 `heuristic`, since a high-confidence finding there would fail those projects' builds. That
 is the position `TA-CONF-001` is in.
