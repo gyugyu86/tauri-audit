@@ -1,7 +1,7 @@
-import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import type { ReportMeta } from './reportModel.js';
+import { readToolVersion } from '../toolVersion.js';
 import { orderedFindings } from './reportModel.js';
 
 import type { Confidence, Finding, Severity } from '../../core/types.js';
@@ -157,16 +157,6 @@ function toSarifUri(filePath: string, cwd: string): string {
   const relative = path.relative(cwd, filePath);
   const normalized = relative === '' ? path.basename(filePath) : relative;
   return normalized.split(path.sep).join('/');
-}
-
-function readToolVersion(): string {
-  try {
-    const url = new URL('../../../package.json', import.meta.url);
-    const parsed = JSON.parse(readFileSync(url, 'utf8')) as { version?: unknown };
-    return typeof parsed.version === 'string' ? parsed.version : '0.0.0';
-  } catch {
-    return '0.0.0';
-  }
 }
 
 export interface SarifOptions {

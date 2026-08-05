@@ -10,6 +10,7 @@ import type { ReportMeta } from './formatters/reportModel.js';
 import { formatSarif } from './formatters/sarif.js';
 import { formatTerminal, formatWarnings } from './formatters/terminal.js';
 import { messages } from './messages.js';
+import { readToolVersion } from './toolVersion.js';
 
 import { buildProjectContext } from '../core/projectContext.js';
 import { runRules } from '../core/ruleEngine.js';
@@ -83,6 +84,7 @@ const program = new Command();
 program
   .name('tauri-audit')
   .description(messages.cliDescription)
+  .version(readToolVersion(), '-V, --version', messages.optVersion)
   .argument('<target-path>', messages.argTargetPath)
   .option('--json', messages.optJson)
   .option('--markdown', messages.optMarkdown)

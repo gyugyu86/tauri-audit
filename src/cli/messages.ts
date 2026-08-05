@@ -17,6 +17,7 @@ export const messages = {
   optCategory: 'SARIF category (run.automationDetails.id)',
   optStrict: 'also fail on heuristic critical/high findings',
   optNoFail: 'do not fail on findings (operational errors still exit 2)',
+  optVersion: 'output the version number',
 
   notADirectory: (target: string): string => `not a directory: ${target}`,
   noTauriProject: (target: string): string =>
