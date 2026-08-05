@@ -1,0 +1,68 @@
+[package]
+name = "stacks"
+version = "0.15.16-dev"
+description = "Stacks"
+authors = ["Andy Gayton <andy@thecablelounge.com>"]
+license = ""
+repository = ""
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+tauri-build = { version = "1.2", features = [] }
+
+[dependencies]
+tauri = { version = "1.8.1", features = [ "window-center", "window-set-size", "global-shortcut", "macos-private-api", "process-command-api", "shell-open", "system-tray", "updater", "window-hide"] }
+tauri-nspanel = { git = "https://github.com/ahkohd/tauri-nspanel", branch = "v1" }
+tauri-plugin-positioner = "1.0.4"
+
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+scru128 = { version = "2.2.0", features = ["serde"] }
+base64 = "0.21.2"
+regex = "1.8.4"
+tokio = { version = "1.28.2", features = ["time", "process"] }
+tokio-util = { version = "0.7.3", features = ["full"] }
+reqwest = { version = "0.11", features = ["json", "blocking"] }
+cacache = { version = "11.6.0", default-features = false, features = ["tokio-runtime"] }
+sled = "0.34.7"
+bincode = "1.3.3"
+ssri = "9.0.0"
+tiktoken-rs = "0.5.0"
+dirs = "5.0.1"
+tantivy = "0.22"
+chrono = "0.4.31"
+async-openai = "0.14.0"
+futures = "0.3.28"
+hyper = { version = "1.2", features = ["full"] }
+http-body-util = "0.1"
+hyper-util = { version = "0.1", features = ["full"] }
+comrak = { version = "0.18.0", features = ["syntect", "shortcodes"] }
+maud = "0.25.0"
+syntect = "5.1.0"
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.17", features = ["json", "env-filter"] }
+tracing-stacks = { git = "https://github.com/cablehead/tracing-stacks.git", branch = "main" }
+tracing-mutex-span = { git = "https://github.com/cablehead/tracing-mutex-span.git", branch = "main" }
+infer = "0.15.0"
+lazy_static = "1.4.0"
+futures-util = "0.3.30"
+clap = "4.5.2"
+bytes = "1.5.0"
+url = "2.5.0"
+image = "0.25.2"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc = "0.2.7"
+cocoa = "0.26.0"
+
+
+[dev-dependencies]
+indoc = "1.0.7"
+tempfile = "3.7.0"
+
+[features]
+# this feature is used for production builds or when `devPath` points to the filesystem
+# DO NOT REMOVE!!
+custom-protocol = ["tauri/custom-protocol"]

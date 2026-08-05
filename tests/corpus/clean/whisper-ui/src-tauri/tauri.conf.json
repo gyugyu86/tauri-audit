@@ -1,0 +1,108 @@
+{
+	"build": {
+		"beforeDevCommand": "npm run dev",
+		"beforeBuildCommand": "npm run build",
+		"devPath": "http://localhost:1420",
+		"distDir": "../build",
+		"withGlobalTauri": false
+	},
+	"package": {
+		"productName": "Whiskey",
+		"version": "0.0.3"
+	},
+	"tauri": {
+		"allowlist": {
+			"fs": {
+				"readFile": true,
+				"writeFile": true,
+				"createDir": true,
+				"scope": ["$RESOURCE/*", "$APPCACHE/*"]
+			},
+			"os": {
+				"all": true
+			},
+			"path": {
+				"all": true
+			},
+			"dialog": {
+				"open": true,
+				"save": true,
+				"ask": true
+			},
+			"shell": {
+				"sidecar": true,
+				"scope": [
+					{
+						"name": "binaries/whisper",
+						"sidecar": true,
+						"args": true
+					},
+					{
+						"name": "binaries/ffmpeg",
+						"sidecar": true,
+						"args": true
+					},
+					{
+						"name": "binaries/ffprobe",
+						"sidecar": true,
+						"args": true
+					}
+				]
+			},
+			"window": {
+				"startDragging": true
+			}
+		},
+		"bundle": {
+			"active": true,
+			"category": "DeveloperTool",
+			"copyright": "",
+			"deb": {
+				"depends": []
+			},
+			"externalBin": ["binaries/whisper", "binaries/ffmpeg", "binaries/ffprobe"],
+			"resources": ["resources/*"],
+			"icon": [
+				"icons/32x32.png",
+				"icons/128x128.png",
+				"icons/128x128@2x.png",
+				"icons/icon.icns",
+				"icons/icon.ico"
+			],
+			"identifier": "com.bitsbybrandon.dev",
+			"longDescription": "",
+			"macOS": {
+				"entitlements": null,
+				"exceptionDomain": "",
+				"frameworks": [],
+				"providerShortName": null,
+				"signingIdentity": null
+			},
+			"shortDescription": "",
+			"targets": "all",
+			"windows": {
+				"certificateThumbprint": null,
+				"digestAlgorithm": "sha256",
+				"timestampUrl": ""
+			}
+		},
+		"security": {
+			"csp": null
+		},
+		"updater": {
+			"active": false
+		},
+		"windows": [
+			{
+				"titleBarStyle": "Overlay",
+				"acceptFirstMouse": true,
+				"hiddenTitle": true,
+				"fullscreen": false,
+				"height": 800,
+				"resizable": true,
+				"title": "Whiskey",
+				"width": 1200
+			}
+		]
+	}
+}

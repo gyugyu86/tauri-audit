@@ -1,16 +1,34 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`clean corpus produces no gating findings > biodivine-sketchbook reports its analysis coverage 1`] = `[]`;
+
+exports[`clean corpus produces no gating findings > chatany reports its analysis coverage 1`] = `[]`;
+
+exports[`clean corpus produces no gating findings > clipboardjesus reports its analysis coverage 1`] = `[]`;
+
+exports[`clean corpus produces no gating findings > control reports its analysis coverage 1`] = `[]`;
+
+exports[`clean corpus produces no gating findings > dredge-mod-manager reports its analysis coverage 1`] = `[]`;
+
 exports[`clean corpus produces no gating findings > ecopaste reports its analysis coverage 1`] = `[]`;
 
 exports[`clean corpus produces no gating findings > grovr reports its analysis coverage 1`] = `[]`;
 
 exports[`clean corpus produces no gating findings > hatickets reports its analysis coverage 1`] = `[]`;
 
+exports[`clean corpus produces no gating findings > openteams reports its analysis coverage 1`] = `[]`;
+
 exports[`clean corpus produces no gating findings > paperling reports its analysis coverage 1`] = `[]`;
 
 exports[`clean corpus produces no gating findings > pomotroid reports its analysis coverage 1`] = `[]`;
 
+exports[`clean corpus produces no gating findings > praises reports its analysis coverage 1`] = `[]`;
+
+exports[`clean corpus produces no gating findings > qadchat reports its analysis coverage 1`] = `[]`;
+
 exports[`clean corpus produces no gating findings > rclone-ui reports its analysis coverage 1`] = `[]`;
+
+exports[`clean corpus produces no gating findings > stacks reports its analysis coverage 1`] = `[]`;
 
 exports[`clean corpus produces no gating findings > surrealist reports its analysis coverage 1`] = `[]`;
 
@@ -26,7 +44,43 @@ exports[`clean corpus produces no gating findings > tauri-isolation-v1 reports i
 ]
 `;
 
+exports[`clean corpus produces no gating findings > whisper-ui reports its analysis coverage 1`] = `[]`;
+
 exports[`clean corpus produces no gating findings > yaak reports its analysis coverage 1`] = `[]`;
+
+exports[`corpus findings snapshot > clean/biodivine-sketchbook 1`] = `
+[
+  "TA-CONF-001 medium/heuristic src-tauri/tauri.conf.json:55",
+  "TA-VITE-001 low/heuristic vite.config.ts:22",
+]
+`;
+
+exports[`corpus findings snapshot > clean/chatany 1`] = `
+[
+  "TA-CONF-001 medium/heuristic src-tauri/tauri.conf.json:89",
+  "TA-V1-003 medium/high src-tauri/tauri.conf.json:90",
+]
+`;
+
+exports[`corpus findings snapshot > clean/clipboardjesus 1`] = `
+[
+  "TA-CONF-001 medium/heuristic src-tauri/tauri.conf.json:69",
+]
+`;
+
+exports[`corpus findings snapshot > clean/control 1`] = `
+[
+  "TA-CONF-001 medium/heuristic src-tauri/tauri.conf.json:52",
+  "TA-CONF-001 medium/heuristic tauri.conf.json:52",
+  "TA-VITE-001 low/heuristic vite.config.ts:11",
+]
+`;
+
+exports[`corpus findings snapshot > clean/dredge-mod-manager 1`] = `
+[
+  "TA-CONF-001 medium/heuristic src-tauri/tauri.conf.json:63",
+]
+`;
 
 exports[`corpus findings snapshot > clean/ecopaste 1`] = `
 [
@@ -42,6 +96,17 @@ exports[`corpus findings snapshot > clean/grovr 1`] = `
 
 exports[`corpus findings snapshot > clean/hatickets 1`] = `[]`;
 
+exports[`corpus findings snapshot > clean/openteams 1`] = `
+[
+  "TA-CONF-001 medium/heuristic src-tauri/tauri.conf.json:94",
+  "TA-CONF-001 medium/heuristic src-tauri/tauri.dev.conf.json:93",
+  "TA-V1-002 high/high src-tauri/tauri.conf.json:104",
+  "TA-V1-002 high/high src-tauri/tauri.conf.json:96",
+  "TA-V1-002 high/high src-tauri/tauri.dev.conf.json:103",
+  "TA-V1-002 high/high src-tauri/tauri.dev.conf.json:95",
+]
+`;
+
 exports[`corpus findings snapshot > clean/paperling 1`] = `
 [
   "TA-CAP-003 medium/heuristic src-tauri/capabilities/default.json:33",
@@ -50,9 +115,29 @@ exports[`corpus findings snapshot > clean/paperling 1`] = `
 
 exports[`corpus findings snapshot > clean/pomotroid 1`] = `[]`;
 
+exports[`corpus findings snapshot > clean/praises 1`] = `
+[
+  "TA-CONF-001 medium/heuristic src-tauri/tauri.conf.json:73",
+]
+`;
+
+exports[`corpus findings snapshot > clean/qadchat 1`] = `
+[
+  "TA-CONF-001 medium/heuristic src-tauri/tauri.conf.json:94",
+  "TA-V1-003 medium/high src-tauri/tauri.conf.json:95",
+]
+`;
+
 exports[`corpus findings snapshot > clean/rclone-ui 1`] = `
 [
   "TA-CONF-001 medium/heuristic src-tauri/tauri.conf.json:33",
+]
+`;
+
+exports[`corpus findings snapshot > clean/stacks 1`] = `
+[
+  "TA-CONF-001 medium/heuristic src-tauri/tauri.conf.json:52",
+  "TA-VITE-001 low/heuristic vite.config.ts:20",
 ]
 `;
 
@@ -65,6 +150,13 @@ exports[`corpus findings snapshot > clean/surrealist 1`] = `
 exports[`corpus findings snapshot > clean/tauri-helloworld-v1 1`] = `[]`;
 
 exports[`corpus findings snapshot > clean/tauri-isolation-v1 1`] = `[]`;
+
+exports[`corpus findings snapshot > clean/whisper-ui 1`] = `
+[
+  "TA-CONF-001 medium/heuristic src-tauri/tauri.conf.json:90",
+  "TA-VITE-001 low/heuristic vite.config.js:18",
+]
+`;
 
 exports[`corpus findings snapshot > clean/yaak 1`] = `
 [

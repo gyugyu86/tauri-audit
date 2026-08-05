@@ -4,10 +4,30 @@
 accommodate what the tool turns out to report.**
 
 `tests/corpus/clean/` is the evidence behind this project's central claim: that tauri-audit
-does not fail the build of a correctly written application. That claim is only worth
+does not fail the build of a real, ordinarily written application. That claim is only worth
 something if the applications were selected without reference to what tauri-audit says
 about them. Choosing applications that the tool happens to pass would make the claim
 circular and destroy the one property the corpus exists to have — independence.
+
+## `clean/` means "met the criteria", not "came out clean"
+
+An application belongs in `clean/` because it satisfies the mechanical eligibility rules
+below. It is not a claim that the application is harmless, well written, or free of
+findings, and **nothing about a configuration's content may be used to keep an application
+out.**
+
+That last rule is not pedantry; it was learned by breaking it. Three candidates setting
+`allowlist.all: true` were once held back from `clean/` on the reasoning that an application
+enabling every API family is "not correctly written" — a judgment about the configuration,
+not about the tool's output, and so seemingly permitted. It is not. That
+`allowlist.all: true` is dangerous **is the entire claim of `TA-V1-001`**, so using it as an
+exclusion criterion means the rule is never tested against an application that has it. Any
+criterion phrased in terms of what a rule objects to smuggles that rule's conclusion into
+the sample, and "no false positives" becomes true by construction.
+
+The corpus is therefore selected on provenance and licensing alone. An application that
+turns out to trip a rule is not removed; it is analyzed, and the finding is resolved as one
+of the two outcomes below.
 
 ## The order of operations is the method
 
@@ -39,14 +59,19 @@ An application qualifies if all of the following hold. Nothing else is considere
 - **License verified from the `LICENSE` file itself**, not from a README badge or a
   repository description. A previous candidate advertised differently from what its
   `LICENSE` actually said, which is why this is spelled out.
-- **Real, third-party, and maintained** — commits within roughly the last year. Applications
-  authored by this project do not count as independent evidence.
+- **Third-party and maintained** — not authored by this project, and pushed to within
+  roughly the last year. Applications authored here do not count as independent evidence.
+  Popularity is not a criterion: a small application written by someone who never heard of
+  this tool is exactly as independent as a large one.
 - **Actually a Tauri application**, carrying a real v1 or v2 configuration.
-- **Selected without looking at tauri-audit's output for it.**
+- **Selected without reference to what any rule would say about it** — neither by running
+  the analyzer, nor by reading the configuration for the settings a rule objects to.
 
 Reading an application's configuration during selection is required, not a violation — the
-coverage goals below are stated in terms of what a configuration contains. What may not
-happen is running the analyzer and letting its verdict influence the choice.
+coverage goals below are stated in terms of what a configuration contains. Reading it to
+decide *which shapes are still missing* is the method working. Reading it to decide that an
+application is too dangerous to include is the method failing, because "too dangerous" can
+only mean "a rule would fire", and that is the question the corpus exists to answer.
 
 ## How large the corpus should be
 
@@ -68,9 +93,8 @@ priority order:
    configurations in the corpus are Tauri's own examples, and those carry no `Cargo.toml`,
    so they are partially analyzed besides. `TA-V1-001`, `TA-V1-002` and `TA-V1-003` are
    three of the four deterministic, build-failing rules, and not one of them has ever been
-   shown not to misfire on a correctly written third-party v1 application. That is the
-   largest hole in the evidence and it is worth more than any number of additional v2
-   applications.
+   run against a third-party v1 application at all. That is the largest hole in the evidence
+   and it is worth more than any number of additional v2 applications.
 2. **An application configuring `plugins.shell`.** Currently zero. `TA-DEP-001`'s exemption
    paths — `open` set to `true`, to a regex, or to `false` — have no real-world material,
    which is why the rule is `synthetic-only`.

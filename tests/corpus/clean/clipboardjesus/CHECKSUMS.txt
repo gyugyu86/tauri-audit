@@ -1,0 +1,7 @@
+# sha256 of every vendored file, so local modification is detectable offline.
+# Regenerate with: node scripts/corpus-checksums.mjs --write
+267b9f9a2f831648d33b1eb1de75575ed8006afcd5a54e20127c99136ad122c8  package-lock.json
+ed27151ff5625885779e9bcab2e3ec64f56714784a698f559985b84c1f3e1c57  package.json
+68f66f98b6290a3d8dfe7068e7354cb07471d8066e2d30cf1b51f09fb91ab24a  src-tauri/Cargo.lock
+674c4ea6fc00ef7f77e1493885600000b6e02091ca66b1aab6b9599d0a25d431  src-tauri/Cargo.toml
+a349bdb12fa5209ccfea57c93084b9c29271a725c667969decf7424f37a8e8ba  src-tauri/tauri.conf.json

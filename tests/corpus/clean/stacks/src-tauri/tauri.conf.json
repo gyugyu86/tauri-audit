@@ -1,0 +1,68 @@
+{
+  "package": {
+    "productName": "Stacks",
+    "version": "0.15.16-dev"
+  },
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devPath": "http://localhost:1420",
+    "distDir": "../dist",
+    "withGlobalTauri": false
+  },
+  "tauri": {
+    "updater": {
+      "active": true,
+      "endpoints": [
+        "https://raw.githubusercontent.com/cablehead/stacks/main/.tauri-updater.json"
+      ],
+      "dialog": true,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEE0ODk5RTFDQ0Q5MDlFOEQKUldTTm5wRE5ISjZKcEp4RHRJS3hHNkdmcGVDdnBjeUhOaXczdWt1UEo5cDFERElnajlsZDJLSW4K"
+    },
+    "systemTray": {
+      "iconPath": "icons/system-tray-icon.png",
+      "iconAsTemplate": true
+    },
+    "allowlist": {
+      "all": false,
+      "window": {
+        "hide": true,
+        "center": true,
+        "setSize": true
+      },
+      "shell": {
+        "all": false,
+        "open": true
+      }
+    },
+    "bundle": {
+      "externalBin": ["bin/x-macos-pasteboard"],
+      "active": true,
+      "icon": [
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/128x128@2x.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
+      ],
+      "identifier": "stream.cross.stacks",
+      "targets": "all"
+    },
+    "security": {
+      "csp": null
+    },
+    "macOSPrivateApi": true,
+    "windows": [
+      {
+        "fullscreen": false,
+        "alwaysOnTop": true,
+        "visible": false,
+        "decorations": false,
+        "transparent": true,
+        "width": 1000,
+        "height": 600,
+        "title": "stacks"
+      }
+    ]
+  }
+}

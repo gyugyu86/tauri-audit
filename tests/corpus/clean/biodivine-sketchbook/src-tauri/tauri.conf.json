@@ -1,0 +1,71 @@
+{
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devPath": "http://localhost:1420",
+    "distDir": "../dist",
+    "withGlobalTauri": true
+  },
+  "package": {
+    "productName": "Biodivine Sketchbook",
+    "version": "0.2.3"
+  },
+  "tauri": {
+    "allowlist": {
+      "all": false,
+      "shell": {
+        "all": false,
+        "open": true
+      },
+      "dialog": {
+        "all": true
+      },
+      "window": {
+        "create": true,
+        "close": true,
+        "setSize": true,
+        "setFocus": true
+      },
+      "path": {
+        "all": true
+      },
+      "os": {
+        "all": true
+      },
+      "fs": {
+        "scope": ["$RESOURCE/resources/*"]
+      }
+    },
+    "bundle": {
+      "active": true,
+      "targets": "all",
+      "identifier": "cz.muni.fi.sybila.aeon",
+      "icon": [
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/128x128@2x.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
+      ],
+      "resources": [
+        "resources/*"
+      ]  
+    },
+    "security": {
+      "csp": null
+    },
+    "windows": [
+      {
+        "label": "editor",
+        "fullscreen": false,
+        "resizable": true,
+        "title": "Biodivine Sketchbook",
+        "width": 1100,
+        "height": 666,
+        "minWidth": 1000,
+        "minHeight": 666,
+        "url": "src/html/sketch-editor.html"
+      }
+    ]
+  }
+}

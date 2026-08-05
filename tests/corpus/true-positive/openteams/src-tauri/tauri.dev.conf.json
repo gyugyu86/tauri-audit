@@ -1,0 +1,114 @@
+{
+  "build": {
+    "beforeBuildCommand": "node scripts/desktop/sync-icons.js && pnpm -C frontend build && node scripts/desktop/prepare-sidecar.js --release",
+    "devPath": "../frontend/dist",
+    "distDir": "../frontend/dist",
+    "withGlobalTauri": true
+  },
+  "package": {
+    "productName": "openteams",
+    "version": "0.4.7"
+  },
+  "tauri": {
+    "allowlist": {
+      "all": false,
+      "dialog": {
+        "open": true
+      },
+      "shell": {
+        "open": true
+      }
+    },
+    "bundle": {
+      "active": true,
+      "targets": [
+        "app",
+        "msi",
+        "dmg",
+        "appimage",
+        "deb",
+        "updater"
+      ],
+      "identifier": "com.openteams.desktop",
+      "icon": [
+        "icons/icon-square.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
+      ],
+      "windows": {
+        "wix": {
+          "bannerPath": "wix/assets/banner.bmp",
+          "dialogImagePath": "wix/assets/dialog.bmp",
+          "fragmentPaths": [
+            "wix/fragments/openteams-directory.wxs"
+          ]
+        }
+      },
+      "deb": {
+        "files": {
+          "/DEBIAN/postrm": "debian/postrm",
+          "/usr/share/icons/hicolor/scalable/apps/openteams.svg": "icons/logo_black.svg"
+        }
+      },
+      "dmg": {
+        "background": "dmg/background.png",
+        "windowSize": {
+          "width": 660,
+          "height": 400
+        },
+        "appPosition": {
+          "x": 180,
+          "y": 212
+        },
+        "applicationFolderPosition": {
+          "x": 480,
+          "y": 212
+        }
+      },
+      "externalBin": [
+        "bin/server"
+      ]
+    },
+    "updater": {
+      "active": true,
+      "dialog": false,
+      "endpoints": [
+        "https://github.com/openteams-lab/openteams/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQxQTYzMkEzNTFBQzg4QjEKUldTeGlLeFJvekttMGRJbXJNbVN0c28xbXdhcFROdTd5TlFOZUJFa0l5NVFheTJJTGRsTXRKM2cK"
+    },
+    "windows": [
+      {
+        "title": "openteams",
+        "width": 1920,
+        "height": 1080,
+        "minWidth": 1024,
+        "minHeight": 640,
+        "resizable": true,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true
+      }
+    ],
+    "security": {
+      "csp": null,
+      "dangerousRemoteDomainIpcAccess": [
+        {
+          "scheme": "http",
+          "domain": "127.0.0.1",
+          "windows": [
+            "main"
+          ],
+          "enableTauriAPI": true
+        },
+        {
+          "scheme": "http",
+          "domain": "localhost",
+          "windows": [
+            "main"
+          ],
+          "enableTauriAPI": true
+        }
+      ]
+    }
+  }
+}
