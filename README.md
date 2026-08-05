@@ -131,11 +131,21 @@ directory with no Tauri project, you get `2`, not a clean bill of health.
 ## GitHub Action
 
 ```yaml
-- uses: gyugyu86/tauri-audit@v0
+- uses: gyugyu86/tauri-audit@v0.1.0
   with:
     path: .
+    version: 0.1.0          # pin the scanner (default: latest)
     category: tauri-audit   # give each run its own category
 ```
+
+`@v0.1.0` is the recommended pin. For the strongest supply-chain guarantee, pin the commit
+SHA the tag resolves to instead — an author can move a tag, but not a commit SHA. Run
+`git rev-parse v0.1.0^{commit}` and use `uses: gyugyu86/tauri-audit@<sha>  # v0.1.0`.
+
+**Pin the scanner too.** The `version:` input defaults to `latest`, so pinning only the
+action does **not** pin the scanner — the action runs `npx tauri-audit@<version>`, which
+resolves against npm at run time. A scan can then change without your workflow changing.
+Set `version:` explicitly, as above, so the action and the scanner move together.
 
 The scan step never fails on its own, so the SARIF always reaches the Security tab; the
 gate is a separate step.
