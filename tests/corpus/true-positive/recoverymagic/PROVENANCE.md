@@ -46,12 +46,27 @@ Nothing in this repository says this application is insecure.
 
 ## Upstream notification
 
-**Not notified.** The authors have not been told that these configuration files are vendored
-here, nor that the setting above was observed. Whether to do so is undecided.
+**Not notified, deliberately.** The authors have not been told that these configuration
+files are vendored here, nor that a rule fired on them.
 
-This paragraph is updated with a link if and when a notice is filed, rather than describing
-it as done in advance — the same order kept for `kiwitalk`, whose notice was written as
-pending until it actually existed.
+The line was drawn on how much a notice would actually tell them, not on how risky the
+setting is. `luwav` and `openteams` were notified because each had something only their
+author could act on — a carefully enumerated `fs.scope` undone by one key, and an IPC grant
+present in the shipped config rather than only the development one. Here the finding is
+`allowlist: {"all": true}` and nothing else, so a notice could only restate what the v1
+schema already documents: `all` enables every API family. That is a link to the reference,
+not an observation about this application.
+
+It is worth being explicit that this cuts against severity. This configuration is *more*
+exposed than the two that were notified — every family enabled, none scoped — and it is
+still the one not written to, because there is nothing to say that reading the docs would
+not say better. Sorting by risk instead would have produced the opposite answer and a worse
+reason.
+
+The vendoring is public either way: this file, the repository, and the corpus directory are
+all readable without anyone being told. If the authors object, the files come out on
+request, with no explanation needed and no expiry on the offer. This paragraph is updated
+with a link if a notice is ever filed, rather than describing one as sent.
 
 ## How it was selected
 
