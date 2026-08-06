@@ -95,6 +95,27 @@ in every change.
   once FP=0 is confirmed to survive it.
 - **Ongoing** — keep `advisories/tauri-advisories.json` in sync with GHSA and RustSec.
 
+## Publishing
+
+- **What a consumer already points at does not change silently.** The documented action ref
+  is an exact tag (`@v0.1.0`), never a moving major tag like `v0`. A moving tag swaps the
+  code under someone's workflow without their workflow changing, which is the property this
+  tool exists to object to — a scanner running in other people's CI is the last thing that
+  should reserve the right to become something else. The README also gives the commit SHA as
+  the stronger pin, because an author can move a tag and cannot move a SHA.
+- **Documentation inside a published tarball is immutable.** npm refuses to republish a
+  version, so an error in the packaged README stays visible on the package page until the
+  next release. 0.1.0 shipped documenting the action as `@v0`, a ref that did not exist; the
+  fix reached GitHub the same day and npm not until 0.1.1. **Before publishing, resolve every
+  ref in the README and confirm it exists** — the repository being correct says nothing about
+  the tarball, which is built from whatever was committed at pack time.
+- **Verify with the command CI runs, not one that resembles it.** `npm test` pins
+  `--update=none` so a snapshot is never written or tolerated as obsolete on any machine.
+  Vitest otherwise decides that from whether it believes it is on CI, which made an obsolete
+  snapshot a note locally and a failure on the runner — once producing a green local report
+  for a commit CI rejected. The check was working; the command being checked was not the one
+  CI runs. Writing or pruning a snapshot now takes an explicit `npx vitest run -u`.
+
 ## Always / never
 
 - **Always**: when adding a rule, write its `vulnerable`/`safe` fixtures and tests in the
@@ -106,7 +127,8 @@ in every change.
 
 ```bash
 npm run build   # tsc; no bundler
-npm test        # vitest, fully offline
+npm test        # vitest, fully offline; snapshots never written implicitly
+npx vitest run -u              # deliberately write or prune snapshots
 npm run lint    # eslint flat config
 node dist/cli/index.js <path>   # run against a project
 ```
