@@ -98,7 +98,7 @@ in every change.
 ## Publishing
 
 - **What a consumer already points at does not change silently.** The documented action ref
-  is an exact tag (`@v0.1.0`), never a moving major tag like `v0`. A moving tag swaps the
+  is an exact tag, matching the release it ships in, never a moving major tag like `v0`. A moving tag swaps the
   code under someone's workflow without their workflow changing, which is the property this
   tool exists to object to — a scanner running in other people's CI is the last thing that
   should reserve the right to become something else. The README also gives the commit SHA as

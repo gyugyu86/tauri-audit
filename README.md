@@ -5,7 +5,7 @@
 Static security analyzer for [Tauri](https://tauri.app) v2 and v1 apps. It parses your
 configuration and source **without running the app**, so it is fast, safe, and CI-friendly.
 
-> **Status: pre-release (0.1.0).** Eight rules, landing incrementally. See [Roadmap](#roadmap).
+> **Status: pre-release (0.1.1).** Eight rules, landing incrementally. See [Roadmap](#roadmap).
 >
 > **Unofficial.** An independent project, not affiliated with or endorsed by the Tauri
 > project or the Tauri Programme within the Commons Conservancy.
@@ -138,16 +138,16 @@ directory with no Tauri project, you get `2`, not a clean bill of health.
 ## GitHub Action
 
 ```yaml
-- uses: gyugyu86/tauri-audit@v0.1.0
+- uses: gyugyu86/tauri-audit@v0.1.1
   with:
     path: .
-    version: 0.1.0          # pin the scanner (default: latest)
+    version: 0.1.1          # pin the scanner (default: latest)
     category: tauri-audit   # give each run its own category
 ```
 
-`@v0.1.0` is the recommended pin. For the strongest supply-chain guarantee, pin the commit
+`@v0.1.1` is the recommended pin. For the strongest supply-chain guarantee, pin the commit
 SHA the tag resolves to instead — an author can move a tag, but not a commit SHA. Run
-`git rev-parse v0.1.0^{commit}` and use `uses: gyugyu86/tauri-audit@<sha>  # v0.1.0`.
+`git rev-parse v0.1.1^{commit}` and use `uses: gyugyu86/tauri-audit@<sha>  # v0.1.1`.
 
 **Pin the scanner too.** The `version:` input defaults to `latest`, so pinning only the
 action does **not** pin the scanner — the action runs `npx tauri-audit@<version>`, which
